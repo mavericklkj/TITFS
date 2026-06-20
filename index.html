@@ -1,48 +1,779 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0d0f0d" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Trade Journal</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0d0f0d" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Trade Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+<style>
+/* ============================== STYLES ============================== */
+:root {
+  --bg: #0d0f0d;
+  --bg-2: #141813;
+  --bg-3: #1b201a;
+  --line: #28301f;
+  --text: #e6efe2;
+  --muted: #8b9a82;
+  --accent: #4ade80;
+  --accent-dim: #2c7a4d;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --radius: 14px;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --display: "Syne", system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text); font-family: var(--mono);
+  font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  padding-bottom: 90px; min-height: 100vh;
+}
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; padding-top: calc(16px + env(safe-area-inset-top));
+  border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; background: rgba(13,15,13,.9);
+  backdrop-filter: blur(10px); z-index: 20;
+}
+.brand { font-family: var(--display); font-size: 19px; letter-spacing: 1px; font-weight: 800; }
+.brand span { color: var(--accent); }
+.tabs {
+  display: flex; gap: 4px; padding: 10px 12px;
+  position: sticky; top: 57px; background: var(--bg); z-index: 19;
+  border-bottom: 1px solid var(--line); overflow-x: auto;
+}
+.tab {
+  flex: 1; min-width: max-content; padding: 9px 14px; border: 1px solid var(--line);
+  background: var(--bg-2); color: var(--muted); border-radius: 10px;
+  font-family: var(--mono); font-size: 13px; font-weight: 500; cursor: pointer; transition: .15s;
+}
+.tab.active { color: var(--bg); background: var(--accent); border-color: var(--accent); font-weight: 700; }
+main { padding: 16px; max-width: 760px; margin: 0 auto; }
+.btn { padding: 11px 16px; border-radius: 10px; border: none; background: var(--accent);
+  color: var(--bg); font-family: var(--mono); font-weight: 700; font-size: 14px; cursor: pointer; }
+.btn:active { transform: scale(.98); }
+.btn-ghost { padding: 8px 14px; border-radius: 9px; border: 1px solid var(--line);
+  background: var(--bg-2); color: var(--text); font-family: var(--mono); font-size: 13px; cursor: pointer; }
+.btn-danger { background: var(--red); color: #1a0a0a; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.fab {
+  position: fixed; right: 18px; bottom: calc(20px + env(safe-area-inset-bottom));
+  width: 58px; height: 58px; border-radius: 50%; border: none;
+  background: var(--accent); color: var(--bg); font-size: 30px; font-weight: 700;
+  cursor: pointer; z-index: 30; box-shadow: 0 6px 24px rgba(74,222,128,.35);
+}
+.card { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 12px; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.pair { font-family: var(--display); font-size: 17px; font-weight: 700; }
+.badge { font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 700; letter-spacing: .5px; }
+.badge.open { background: rgba(251,191,36,.15); color: var(--amber); }
+.badge.win { background: rgba(74,222,128,.15); color: var(--accent); }
+.badge.loss { background: rgba(248,113,113,.15); color: var(--red); }
+.badge.be { background: rgba(139,154,130,.18); color: var(--muted); }
+.badge.long { background: rgba(74,222,128,.12); color: var(--accent); }
+.badge.short { background: rgba(248,113,113,.12); color: var(--red); }
+.badge.gamble { background: rgba(251,191,36,.15); color: var(--amber); }
+.meta-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px 12px; margin-top: 12px; }
+.meta { display: flex; flex-direction: column; }
+.meta .k { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.meta .v { font-size: 14px; font-weight: 500; margin-top: 1px; }
+.meta .v.pos { color: var(--accent); }
+.meta .v.neg { color: var(--red); }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.tag-chip { font-size: 11px; padding: 4px 10px; border-radius: 999px;
+  background: var(--bg-3); border: 1px solid var(--line); color: var(--muted); }
+.thumbs { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.thumb { width: 60px; height: 60px; border-radius: 8px; object-fit: cover;
+  border: 1px solid var(--line); cursor: pointer; }
+.section-title { font-family: var(--display); font-size: 13px; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--muted); margin: 18px 2px 10px; }
+.empty { text-align: center; color: var(--muted); padding: 50px 20px; }
+.empty b { font-family: var(--display); display: block; font-size: 16px; color: var(--text); margin-bottom: 6px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .6px; margin-bottom: 6px; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 11px 12px; background: var(--bg-3); border: 1px solid var(--line);
+  border-radius: 10px; color: var(--text); font-family: var(--mono); font-size: 14px;
+}
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent-dim); }
+.field textarea { resize: vertical; min-height: 64px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.chip-pick { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip-pick button { font-size: 12px; padding: 7px 12px; border-radius: 999px;
+  background: var(--bg-3); border: 1px solid var(--line); color: var(--muted); cursor: pointer; font-family: var(--mono); }
+.chip-pick button.sel { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+.seg { display: flex; gap: 6px; }
+.seg button { flex: 1; padding: 10px; border-radius: 10px; background: var(--bg-3);
+  border: 1px solid var(--line); color: var(--muted); cursor: pointer; font-family: var(--mono); font-weight: 600; }
+.seg button.sel.long { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.seg button.sel.short { background: var(--red); color: #1a0a0a; border-color: var(--red); }
+.calc-line { font-size: 12px; color: var(--muted); margin-top: -4px; margin-bottom: 12px; }
+.calc-line b { color: var(--accent); }
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(3px);
+  z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
+.modal { background: var(--bg-2); width: 100%; max-width: 620px; max-height: 92vh; overflow-y: auto;
+  border-radius: 20px 20px 0 0; border: 1px solid var(--line); padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+@media (min-width: 640px){ .modal-bg { align-items: center; } .modal { border-radius: 20px; } }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.modal-head h2 { font-family: var(--display); font-size: 18px; }
+.modal-close { background: none; border: none; color: var(--muted); font-size: 26px; cursor: pointer; line-height: 1; }
+.stat-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+.stat { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.stat .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.stat .num { font-family: var(--display); font-size: 24px; font-weight: 800; margin-top: 4px; }
+.stat .num.pos { color: var(--accent); } .stat .num.neg { color: var(--red); }
+.stat .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; }
+.table th { text-align: left; color: var(--muted); font-weight: 500; font-size: 11px;
+  text-transform: uppercase; letter-spacing: .5px; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+.table td { padding: 9px 6px; border-bottom: 1px solid var(--bg-3); }
+.table td.pos { color: var(--accent); } .table td.neg { color: var(--red); }
+.curve-wrap { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-top: 6px; }
+.strip-wrap { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px; margin-top: 6px; overflow-x: auto; }
+.tier-strip, .gamble-strip { display: flex; align-items: center; gap: 6px; min-width: max-content; }
+.tier-step { display: flex; align-items: center; gap: 6px; }
+.tier-node { display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 9px; font-weight: 700; font-size: 13px;
+  background: var(--bg-3); border: 1px solid var(--line); color: var(--muted); flex-shrink: 0; }
+.tier-node.start { border-color: var(--accent-dim); color: var(--accent); }
+.tier-node.active.win { background: rgba(74,222,128,.18); border-color: var(--accent); color: var(--accent); }
+.tier-node.active.loss { background: rgba(248,113,113,.18); border-color: var(--red); color: var(--red); }
+.tier-node.active.be { background: var(--bg-3); border-color: var(--line); color: var(--muted); }
+.tier-arrow { color: var(--muted); font-size: 15px; flex-shrink: 0; }
+.tier-arrow.pos { color: var(--accent); } .tier-arrow.neg { color: var(--red); }
+.gamble-node { display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 8px; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+.gamble-node.win { background: rgba(74,222,128,.18); color: var(--accent); border: 1px solid var(--accent); }
+.gamble-node.loss { background: rgba(248,113,113,.18); color: var(--red); border: 1px solid var(--red); }
+.gamble-node.be { background: var(--bg-3); color: var(--muted); border: 1px solid var(--line); }
+.list-item { display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 12px; background: var(--bg-2); border: 1px solid var(--line);
+  border-radius: 10px; margin-bottom: 8px; }
+.list-item .x { background: none; border: none; color: var(--red); cursor: pointer; font-size: 18px; }
+.add-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.add-row input { flex: 1; padding: 11px 12px; background: var(--bg-3); border: 1px solid var(--line);
+  border-radius: 10px; color: var(--text); font-family: var(--mono); font-size: 14px; }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.filter-bar select { padding: 9px 11px; background: var(--bg-2);
+  border: 1px solid var(--line); border-radius: 9px; color: var(--text); font-family: var(--mono); font-size: 13px; }
+.lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 20px; }
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 10px; }
+</style>
 </head>
 <body>
-  <header class="topbar">
-    <h1 class="brand">TRADE<span>JOURNAL</span></h1>
-    <div class="topbar-actions">
-      <button id="installBtn" class="btn-ghost" hidden>Install</button>
-    </div>
-  </header>
+<header class="topbar">
+  <h1 class="brand">TRADE<span>JOURNAL</span></h1>
+  <div class="topbar-actions"><button id="installBtn" class="btn-ghost" hidden>Install</button></div>
+</header>
+<nav class="tabs">
+  <button class="tab active" data-view="tier">Tier</button>
+  <button class="tab" data-view="trades">Trades</button>
+  <button class="tab" data-view="stats">Stats</button>
+  <button class="tab" data-view="manage">Manage</button>
+  <button class="tab" data-view="backup">Backup</button>
+</nav>
+<main id="app"></main>
+<button id="fab" class="fab" title="New trade">＋</button>
+<div id="modalRoot"></div>
 
-  <nav class="tabs">
-    <button class="tab active" data-view="tier">Tier</button>
-    <button class="tab" data-view="trades">Trades</button>
-    <button class="tab" data-view="stats">Stats</button>
-    <button class="tab" data-view="manage">Manage</button>
-    <button class="tab" data-view="backup">Backup</button>
-  </nav>
+<script>
+/* ============================== DB ============================== */
+const DB = (() => {
+  const NAME = "tradeJournal", VERSION = 1;
+  let db = null;
+  function open() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(NAME, VERSION);
+      req.onupgradeneeded = (e) => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains("trades")) d.createObjectStore("trades", { keyPath: "id" });
+        if (!d.objectStoreNames.contains("meta")) d.createObjectStore("meta", { keyPath: "key" });
+      };
+      req.onsuccess = () => { db = req.result; resolve(db); };
+      req.onerror = () => reject(req.error);
+    });
+  }
+  function tx(store, mode = "readonly") { return db.transaction(store, mode).objectStore(store); }
+  const trades = {
+    all() { return new Promise((res, rej) => {
+      const r = tx("trades").getAll();
+      r.onsuccess = () => res(r.result.sort((a, b) => (b.entryTime || "").localeCompare(a.entryTime || "")));
+      r.onerror = () => rej(r.error); }); },
+    put(t) { return new Promise((res, rej) => { const r = tx("trades", "readwrite").put(t); r.onsuccess = () => res(t); r.onerror = () => rej(r.error); }); },
+    get(id) { return new Promise((res, rej) => { const r = tx("trades").get(id); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
+    remove(id) { return new Promise((res, rej) => { const r = tx("trades", "readwrite").delete(id); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); },
+    clear() { return new Promise((res, rej) => { const r = tx("trades", "readwrite").clear(); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
+  };
+  const meta = {
+    get(key, fallback) { return new Promise((res) => { const r = tx("meta").get(key); r.onsuccess = () => res(r.result ? r.result.value : fallback); r.onerror = () => res(fallback); }); },
+    set(key, value) { return new Promise((res, rej) => { const r = tx("meta", "readwrite").put({ key, value }); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
+  };
+  return { open, trades, meta };
+})();
 
-  <main id="app"></main>
+/* ============================== TRADES MODEL ============================== */
+const Trades = (() => {
+  const DEFAULT_PAIRS = ["EUR/USD", "BTC/USD", "GBP/USD", "USD/JPY", "XAU/USD"];
+  const DEFAULT_TAGS = ["Engulfing", "Engulfing Sweep", "OTE", "FVG", "Order Block", "RSI Divergence"];
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function rr(slPips, tpPips) { const sl = parseFloat(slPips), tp = parseFloat(tpPips); if (!sl || !tp) return null; return tp / sl; }
+  function rMultiple(t) {
+    if (t.status !== "closed") return null;
+    if (t.outcome === "win") return rr(t.slPips, t.tpPips);
+    if (t.outcome === "loss") return -1;
+    if (t.outcome === "be") return 0;
+    return null;
+  }
+  function holdMs(t) { if (!t.entryTime || !t.exitTime) return null; const a = new Date(t.entryTime).getTime(), b = new Date(t.exitTime).getTime(); return (b > a) ? b - a : null; }
+  function nowLocal() { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); }
+  function blank() {
+    return { id: uid(), status: "open", pair: "", direction: "long", tier: "", gamble: false,
+      slPips: "", tpPips: "", entryTime: "", exitTime: "", tags: [], outcome: "", pnl: "", notes: "", images: [] };
+  }
+  return { DEFAULT_PAIRS, DEFAULT_TAGS, uid, rr, rMultiple, holdMs, blank, nowLocal };
+})();
 
-  <button id="fab" class="fab" title="New trade">＋</button>
+/* ============================== TIER ENGINE ============================== */
+const Tier = (() => {
+  const BASE = 100, RR = 2.4, MAX = 5;
+  function ladder(base = BASE, rr = RR) {
+    const rows = []; let stake = base;
+    for (let i = 1; i <= MAX; i++) { const profit = stake * rr; rows.push({ tier: i, stake, rr, profit }); stake = profit; }
+    return rows;
+  }
+  function stakeFor(tierNum, base = BASE, rr = RR) { const row = ladder(base, rr).find(r => r.tier === tierNum); return row ? row.stake : null; }
+  function next(tierNum, outcome) {
+    if (outcome === "win") return Math.min(MAX, tierNum + 1);
+    if (outcome === "loss") return Math.max(1, tierNum - 1);
+    return tierNum;
+  }
+  function currentTier(trades) {
+    const chron = trades.filter(t => t.status === "closed" && !t.gamble)
+      .sort((a, b) => (a.exitTime || a.entryTime || "").localeCompare(b.exitTime || b.entryTime || ""));
+    let tier = 1; chron.forEach(t => { tier = next(tier, t.outcome); }); return tier;
+  }
+  return { BASE, RR, MAX, ladder, stakeFor, next, currentTier };
+})();
 
-  <!-- Modal root -->
-  <div id="modalRoot"></div>
+/* ============================== STATS ============================== */
+const Stats = (() => {
+  function compute(trades) {
+    const closed = trades.filter(t => t.status === "closed");
+    const open = trades.filter(t => t.status === "open");
+    const wins = closed.filter(t => t.outcome === "win");
+    const losses = closed.filter(t => t.outcome === "loss");
+    const bes = closed.filter(t => t.outcome === "be");
+    const pnl = (t) => parseFloat(t.pnl) || 0;
+    const totalPnl = closed.reduce((s, t) => s + pnl(t), 0);
+    const grossWin = wins.reduce((s, t) => s + pnl(t), 0);
+    const grossLoss = Math.abs(losses.reduce((s, t) => s + pnl(t), 0));
+    const rOf = (t) => Trades.rMultiple(t) || 0;
+    const totalR = closed.reduce((s, t) => s + rOf(t), 0);
+    const decided = wins.length + losses.length;
+    const winRate = decided ? (wins.length / decided) * 100 : 0;
+    const avgWin = wins.length ? grossWin / wins.length : 0;
+    const avgLoss = losses.length ? grossLoss / losses.length : 0;
+    const profitFactor = grossLoss ? grossWin / grossLoss : (grossWin ? Infinity : 0);
+    const expectancyR = closed.length ? totalR / closed.length : 0;
+    const pnls = closed.map(pnl);
+    const largestWin = pnls.length ? Math.max(0, ...pnls) : 0;
+    const largestLoss = pnls.length ? Math.min(0, ...pnls) : 0;
+    const chron = [...closed].reverse();
+    let curStreak = 0, curType = null, maxWin = 0, maxLoss = 0, w = 0, l = 0;
+    chron.forEach(t => {
+      if (t.outcome === "win") { w++; l = 0; maxWin = Math.max(maxWin, w); }
+      else if (t.outcome === "loss") { l++; w = 0; maxLoss = Math.max(maxLoss, l); }
+      else { w = 0; l = 0; }
+    });
+    for (let i = chron.length - 1; i >= 0; i--) {
+      const o = chron[i].outcome;
+      if (o === "be") break;
+      if (curType === null) { curType = o; curStreak = 1; }
+      else if (o === curType) curStreak++;
+      else break;
+    }
+    const holds = closed.map(Trades.holdMs).filter(Boolean);
+    const avgHoldMs = holds.length ? holds.reduce((a, b) => a + b, 0) / holds.length : null;
+    const rrs = closed.map(t => Trades.rr(t.slPips, t.tpPips)).filter(Boolean);
+    const avgRR = rrs.length ? rrs.reduce((a, b) => a + b, 0) / rrs.length : 0;
+    let cum = 0;
+    const curve = chron.map(t => { cum += pnl(t); return { t: t.exitTime || t.entryTime, y: cum }; });
+    return {
+      total: trades.length, open: open.length, closed: closed.length,
+      wins: wins.length, losses: losses.length, bes: bes.length,
+      winRate, totalPnl, totalR, avgWin, avgLoss, profitFactor, expectancyR,
+      largestWin, largestLoss, curStreak, curType, maxWin, maxLoss, avgHoldMs, avgRR, curve,
+      byTag: groupStats(closed, t => t.tags || []),
+      byPair: groupStats(closed, t => [t.pair]),
+      byTier: groupStats(closed, t => [t.gamble ? "Gamble" : (t.tier ? "Tier " + t.tier : "")])
+    };
+  }
+  function groupStats(closed, keyFn) {
+    const map = {};
+    closed.forEach(t => {
+      keyFn(t).filter(k => k).forEach(k => {
+        if (!map[k]) map[k] = { key: k, n: 0, w: 0, l: 0, pnl: 0, r: 0 };
+        const g = map[k]; g.n++;
+        if (t.outcome === "win") g.w++;
+        if (t.outcome === "loss") g.l++;
+        g.pnl += parseFloat(t.pnl) || 0;
+        g.r += Trades.rMultiple(t) || 0;
+      });
+    });
+    return Object.values(map).map(g => ({ ...g, wr: (g.w + g.l) ? (g.w / (g.w + g.l)) * 100 : 0 })).sort((a, b) => b.pnl - a.pnl);
+  }
+  function fmtHold(ms) {
+    if (!ms) return "—";
+    const h = Math.floor(ms / 3.6e6), m = Math.floor((ms % 3.6e6) / 6e4);
+    if (h >= 24) return Math.floor(h / 24) + "d " + (h % 24) + "h";
+    return h ? h + "h " + m + "m" : m + "m";
+  }
+  return { compute, fmtHold };
+})();
 
-  <script src="js/db.js"></script>
-  <script src="js/trades.js"></script>
-  <script src="js/tier.js"></script>
-  <script src="js/stats.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/app.js"></script>
+/* ============================== UI ============================== */
+const UI = (() => {
+  const app = () => document.getElementById("app");
+  const modalRoot = () => document.getElementById("modalRoot");
+  let state = { pairs: [], tags: [], trades: [], filter: { status: "all", pair: "", tag: "" } };
+  const esc = (s) => (s == null ? "" : String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])));
+  const num = (n, d = 2) => (n === Infinity ? "∞" : (n == null ? "—" : Number(n).toFixed(d)));
+  const sign = (n) => (n > 0 ? "pos" : n < 0 ? "neg" : "");
+
+  async function refresh() {
+    state.trades = await DB.trades.all();
+    state.pairs = await DB.meta.get("pairs", Trades.DEFAULT_PAIRS);
+    state.tags = await DB.meta.get("tags", Trades.DEFAULT_TAGS);
+  }
+
+  function fmtDate(s) {
+    if (!s) return "—";
+    const d = new Date(s);
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " " +
+      d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  }
+
+  /* ---------- TRADES ---------- */
+  function renderTrades() {
+    let list = state.trades;
+    const f = state.filter;
+    if (f.status !== "all") list = list.filter(t => t.status === f.status);
+    if (f.pair) list = list.filter(t => t.pair === f.pair);
+    if (f.tag) list = list.filter(t => (t.tags || []).includes(f.tag));
+    const openT = list.filter(t => t.status === "open");
+    const closedT = list.filter(t => t.status === "closed");
+    const filterBar = `
+      <div class="filter-bar">
+        <select onchange="UI.setFilter('status', this.value)">
+          ${["all", "open", "closed"].map(s => `<option value="${s}" ${f.status === s ? "selected" : ""}>${s[0].toUpperCase() + s.slice(1)}</option>`).join("")}
+        </select>
+        <select onchange="UI.setFilter('pair', this.value)">
+          <option value="">All pairs</option>
+          ${state.pairs.map(p => `<option ${f.pair === p ? "selected" : ""}>${esc(p)}</option>`).join("")}
+        </select>
+        <select onchange="UI.setFilter('tag', this.value)">
+          <option value="">All setups</option>
+          ${state.tags.map(t => `<option ${f.tag === t ? "selected" : ""}>${esc(t)}</option>`).join("")}
+        </select>
+      </div>`;
+    if (!list.length) { app().innerHTML = filterBar + `<div class="empty"><b>No trades yet</b>Tap ＋ to log your first entry.</div>`; return; }
+    app().innerHTML = filterBar +
+      (openT.length ? `<div class="section-title">Open · ${openT.length}</div>` + openT.map(card).join("") : "") +
+      (closedT.length ? `<div class="section-title">Closed · ${closedT.length}</div>` + closedT.map(card).join("") : "");
+  }
+  function card(t) {
+    const r = Trades.rMultiple(t);
+    const rrv = Trades.rr(t.slPips, t.tpPips);
+    const pnlNum = parseFloat(t.pnl);
+    const outBadge = t.status === "open" ? `<span class="badge open">OPEN</span>` : `<span class="badge ${t.outcome}">${t.outcome.toUpperCase()}</span>`;
+    const tierLabel = t.gamble ? `<span class="badge gamble">GAMBLE</span>` : (t.tier ? `<span class="tag-chip">T${t.tier}</span>` : "");
+    return `
+      <div class="card" onclick="UI.openTrade('${t.id}')">
+        <div class="card-head">
+          <div><span class="pair">${esc(t.pair || "—")}</span> <span class="badge ${t.direction}">${t.direction.toUpperCase()}</span> ${tierLabel}</div>
+          ${outBadge}
+        </div>
+        <div class="meta-grid">
+          <div class="meta"><span class="k">SL / TP pips</span><span class="v">${esc(t.slPips || "—")} / ${esc(t.tpPips || "—")}</span></div>
+          <div class="meta"><span class="k">R:R</span><span class="v">${rrv ? num(rrv) : "—"}</span></div>
+          ${t.status === "closed" ? `
+            <div class="meta"><span class="k">P&L</span><span class="v ${sign(pnlNum)}">${isNaN(pnlNum) ? "—" : (pnlNum > 0 ? "+" : "") + pnlNum}</span></div>
+            <div class="meta"><span class="k">R</span><span class="v ${sign(r)}">${r == null ? "—" : (r > 0 ? "+" : "") + num(r)}</span></div>
+            <div class="meta"><span class="k">Hold</span><span class="v">${Stats.fmtHold(Trades.holdMs(t))}</span></div>
+            <div class="meta"><span class="k">Closed</span><span class="v">${fmtDate(t.exitTime)}</span></div>
+          ` : `<div class="meta"><span class="k">Entry</span><span class="v">${fmtDate(t.entryTime)}</span></div>`}
+        </div>
+        ${(t.tags || []).length ? `<div class="tags">${t.tags.map(tg => `<span class="tag-chip">${esc(tg)}</span>`).join("")}</div>` : ""}
+        ${(t.images || []).length ? `<div class="thumbs">${t.images.map(im => `<img class="thumb" src="${im.dataUrl}" onclick="event.stopPropagation();UI.lightbox('${im.dataUrl}')" />`).join("")}</div>` : ""}
+      </div>`;
+  }
+
+  /* ---------- TRADE FORM ---------- */
+  function newTrade() { openForm(Trades.blank(), "new"); }
+  async function openTrade(id) { openForm(await DB.trades.get(id), "edit"); }
+  function openForm(t, mode) {
+    if (mode === "new" && !t.gamble && !t.tier) t.tier = Tier.currentTier(state.trades);
+    modalRoot().innerHTML = `
+      <div class="modal-bg" onclick="if(event.target===this)UI.closeModal()">
+        <div class="modal">
+          <div class="modal-head"><h2>${mode === "new" ? "New Trade" : "Edit Trade"}</h2><button class="modal-close" onclick="UI.closeModal()">×</button></div>
+          <div class="field"><label>Pair</label>
+            <div class="chip-pick" id="pairPick">${state.pairs.map(p => `<button type="button" class="${t.pair === p ? "sel" : ""}" onclick="UI.pickPair('${esc(p)}')">${esc(p)}</button>`).join("")}</div>
+          </div>
+          <div class="field"><label>Direction</label>
+            <div class="seg" id="dirSeg">
+              <button type="button" class="${t.direction === "long" ? "sel long" : ""}" onclick="UI.pickDir('long')">LONG</button>
+              <button type="button" class="${t.direction === "short" ? "sel short" : ""}" onclick="UI.pickDir('short')">SHORT</button>
+            </div>
+          </div>
+          <div class="field"><label>Trade type</label>
+            <div class="seg" id="gambleSeg">
+              <button type="button" class="${!t.gamble ? "sel long" : ""}" onclick="UI.pickGamble(false)">TIERED</button>
+              <button type="button" class="${t.gamble ? "sel short" : ""}" onclick="UI.pickGamble(true)">GAMBLE</button>
+            </div>
+          </div>
+          <div class="field" id="tierField"><label>Tier</label>
+            <select id="f_tier" onchange="UI.onTierChange(this.value)">${[1,2,3,4,5].map(n => `<option value="${n}" ${String(t.tier) === String(n) ? "selected" : ""}>Tier ${n}</option>`).join("")}</select>
+            <div class="calc-line" id="tierStakeLine"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>SL (pips)</label><input id="f_sl" type="number" step="any" value="${esc(t.slPips)}" oninput="UI.recalcRR()" /></div>
+            <div class="field"><label>TP (pips)</label><input id="f_tp" type="number" step="any" value="${esc(t.tpPips)}" oninput="UI.recalcRR()" /></div>
+          </div>
+          <div class="calc-line" id="rrLine"></div>
+          <div class="field"><label>Entry time <span style="color:var(--muted);text-transform:none;letter-spacing:0">· auto on save</span></label>
+            <div style="display:flex;gap:8px"><input id="f_entry" type="datetime-local" value="${esc(t.entryTime)}" style="flex:1;min-width:0" /><button type="button" class="btn-ghost" onclick="UI.stampNow('f_entry')">Now</button></div>
+          </div>
+          <div class="field"><label>Setup tags</label>
+            <div class="chip-pick" id="tagPick">${state.tags.map(tg => `<button type="button" class="${(t.tags || []).includes(tg) ? "sel" : ""}" onclick="UI.toggleTag('${esc(tg)}')">${esc(tg)}</button>`).join("")}</div>
+          </div>
+          <div class="field"><label>Entry screenshot(s)</label><input type="file" accept="image/*" multiple onchange="UI.addImages(this,'entry')" /></div>
+          <div class="thumbs" id="imgEntry"></div>
+          <div class="section-title" style="margin-top:20px">Close (when TP / SL / BE hit)</div>
+          <div class="field"><label>Outcome</label>
+            <div class="seg" id="outSeg">${["win", "loss", "be"].map(o => `<button type="button" class="${t.outcome === o ? "sel " + (o === "win" ? "long" : o === "loss" ? "short" : "") : ""}" onclick="UI.pickOutcome('${o}')">${o === "be" ? "BREAK EVEN" : o.toUpperCase()}</button>`).join("")}</div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Exit time <span style="color:var(--muted);text-transform:none;letter-spacing:0">· auto on close</span></label>
+              <div style="display:flex;gap:8px"><input id="f_exit" type="datetime-local" value="${esc(t.exitTime)}" style="flex:1;min-width:0" /><button type="button" class="btn-ghost" onclick="UI.stampNow('f_exit')">Now</button></div>
+            </div>
+            <div class="field"><label>P&L</label><input id="f_pnl" type="number" step="any" value="${esc(t.pnl)}" /></div>
+          </div>
+          <div class="field"><label>Result screenshot(s)</label><input type="file" accept="image/*" multiple onchange="UI.addImages(this,'result')" /></div>
+          <div class="thumbs" id="imgResult"></div>
+          <div class="field"><label>Notes</label><textarea id="f_notes">${esc(t.notes)}</textarea></div>
+          <div class="btn-row">
+            <button class="btn" style="flex:1" onclick="UI.save()">Save</button>
+            ${mode === "edit" ? `<button class="btn btn-danger" onclick="UI.del('${t.id}')">Delete</button>` : ""}
+          </div>
+        </div>
+      </div>`;
+    UI._draft = JSON.parse(JSON.stringify(t));
+    renderDraftImages(); recalcRR(); updateTierUI();
+  }
+  function pickPair(p) { UI._draft.pair = p; document.querySelectorAll("#pairPick button").forEach(b => b.classList.toggle("sel", b.textContent === p)); }
+  function pickDir(d) { UI._draft.direction = d; const s = document.getElementById("dirSeg"); s.children[0].className = d === "long" ? "sel long" : ""; s.children[1].className = d === "short" ? "sel short" : ""; }
+  function pickGamble(g) {
+    UI._draft.gamble = g;
+    const s = document.getElementById("gambleSeg");
+    s.children[0].className = !g ? "sel long" : ""; s.children[1].className = g ? "sel short" : "";
+    if (g) UI._draft.tier = ""; else if (!UI._draft.tier) UI._draft.tier = Tier.currentTier(state.trades);
+    updateTierUI();
+  }
+  function onTierChange(v) { UI._draft.tier = v; updateTierUI(); }
+  function stampNow(id) { const el = document.getElementById(id); if (el) el.value = Trades.nowLocal(); }
+  function updateTierUI() {
+    const field = document.getElementById("tierField"), line = document.getElementById("tierStakeLine"), sel = document.getElementById("f_tier");
+    if (!field) return;
+    field.style.display = UI._draft.gamble ? "none" : "block";
+    if (sel && UI._draft.tier) sel.value = UI._draft.tier;
+    if (line && UI._draft.tier) { const stake = Tier.stakeFor(Number(UI._draft.tier)); line.innerHTML = `Stake <b>$${stake.toFixed(2)}</b> · TP profit <b>$${(stake * Tier.RR).toFixed(2)}</b> @ ${Tier.RR} RR`; }
+    else if (line) line.innerHTML = "";
+  }
+  function pickOutcome(o) {
+    UI._draft.outcome = o;
+    const seg = document.getElementById("outSeg");
+    [...seg.children].forEach((b, i) => { const oo = ["win", "loss", "be"][i]; b.className = UI._draft.outcome === oo ? "sel " + (oo === "win" ? "long" : oo === "loss" ? "short" : "") : ""; });
+  }
+  function toggleTag(tg) {
+    const arr = UI._draft.tags || (UI._draft.tags = []);
+    const i = arr.indexOf(tg); if (i >= 0) arr.splice(i, 1); else arr.push(tg);
+    document.querySelectorAll("#tagPick button").forEach(b => b.classList.toggle("sel", arr.includes(b.textContent)));
+  }
+  function recalcRR() {
+    const sl = parseFloat(document.getElementById("f_sl")?.value), tp = parseFloat(document.getElementById("f_tp")?.value);
+    const line = document.getElementById("rrLine");
+    if (line) line.innerHTML = (sl && tp) ? `R:R <b>${(tp / sl).toFixed(2)}</b>` : "";
+  }
+  async function addImages(input, label) {
+    for (const file of [...input.files]) { const dataUrl = await fileToDataUrl(file); UI._draft.images.push({ id: Trades.uid(), label, dataUrl }); }
+    renderDraftImages();
+  }
+  function renderDraftImages() {
+    ["entry", "result"].forEach(lbl => {
+      const box = document.getElementById(lbl === "entry" ? "imgEntry" : "imgResult");
+      if (!box) return;
+      box.innerHTML = UI._draft.images.filter(im => im.label === lbl).map(im =>
+        `<span style="position:relative;display:inline-block"><img class="thumb" src="${im.dataUrl}" onclick="UI.lightbox('${im.dataUrl}')" /><button onclick="UI.removeImg('${im.id}')" style="position:absolute;top:-6px;right:-6px;background:var(--red);color:#000;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-weight:700">×</button></span>`).join("");
+    });
+  }
+  function removeImg(id) { UI._draft.images = UI._draft.images.filter(im => im.id !== id); renderDraftImages(); }
+  function fileToDataUrl(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(file); }); }
+  async function save() {
+    const d = UI._draft;
+    d.tier = d.gamble ? "" : document.getElementById("f_tier").value;
+    d.slPips = document.getElementById("f_sl").value;
+    d.tpPips = document.getElementById("f_tp").value;
+    d.entryTime = document.getElementById("f_entry").value;
+    d.exitTime = document.getElementById("f_exit").value;
+    d.pnl = document.getElementById("f_pnl").value;
+    d.notes = document.getElementById("f_notes").value;
+    d.status = d.outcome ? "closed" : "open";
+    const now = Trades.nowLocal();
+    if (!d.entryTime) d.entryTime = now;
+    if (d.status === "closed" && !d.exitTime) d.exitTime = now;
+    await DB.trades.put(d); closeModal(); await refresh(); renderTrades();
+  }
+  async function del(id) { if (!confirm("Delete this trade permanently?")) return; await DB.trades.remove(id); closeModal(); await refresh(); renderTrades(); }
+  function closeModal() { modalRoot().innerHTML = ""; }
+  function lightbox(src) { const lb = document.createElement("div"); lb.className = "lightbox"; lb.onclick = () => lb.remove(); lb.innerHTML = `<img src="${src}" />`; document.body.appendChild(lb); }
+  function setFilter(k, v) { state.filter[k] = v; renderTrades(); }
+
+  /* ---------- TIER VIEW ---------- */
+  function renderTier() {
+    const cur = Tier.currentTier(state.trades);
+    const rows = Tier.ladder();
+    const curStake = Tier.stakeFor(cur);
+    app().innerHTML = `
+      <div class="stat-grid">
+        ${stat("Current Tier", "Tier " + cur, "auto from history")}
+        ${stat("Tier Stake", "$" + num(curStake), "risk @ " + Tier.RR + " RR", "pos")}
+      </div>
+      ${tierHistoryStrip()}
+      ${gambleHistoryStrip()}
+      <div class="section-title">Ladder</div>
+      <table class="table"><thead><tr><th>Tier</th><th>Stake (risk)</th><th>TP profit</th><th>RR</th></tr></thead><tbody>
+        ${rows.map(r => `<tr style="${r.tier === cur ? "background:var(--bg-3)" : ""}"><td>${r.tier === cur ? "▶ " : ""}Tier ${r.tier}</td><td>$${num(r.stake)}</td><td class="pos">+$${num(r.profit)}</td><td>${r.rr}</td></tr>`).join("")}
+      </tbody></table>
+      <div class="calc-line" style="margin-top:10px">TP → up one tier · SL → down one tier · BE → hold · floor T1 · cap T5. Gamble excluded.</div>
+      <div class="section-title">Trade Calculator</div>
+      <div class="card">
+        <div class="calc-line" style="color:var(--muted);margin-bottom:12px">Auto-pulls current <b style="color:var(--accent)">Tier ${cur}</b> · risk <b style="color:var(--accent)">${curStake.toFixed(2)}</b> @ ${Tier.RR} RR. Just enter SL.</div>
+        <div class="field-row">
+          <div class="field"><label>SL (pips)</label><input id="tc_sl" type="number" step="any" placeholder="e.g. 20" oninput="UI.calc('combo')" /></div>
+          <div class="field"><label>RR</label><input id="tc_rr" type="number" step="any" value="${Tier.RR}" oninput="UI.calc('combo')" /></div>
+        </div>
+        <div id="tcOut"></div>
+      </div>`;
+  }
+  function tierHistoryStrip() {
+    const chron = state.trades.filter(t => t.status === "closed" && !t.gamble)
+      .sort((a, b) => (a.exitTime || a.entryTime || "").localeCompare(b.exitTime || b.entryTime || ""));
+    if (!chron.length) return `<div class="section-title">Tier Path</div><div class="calc-line" style="color:var(--muted)">No closed tiered trades yet.</div>`;
+    let tier = 1;
+    const steps = chron.map(t => { const from = tier; const to = Tier.next(from, t.outcome); tier = to; return { from, to, outcome: t.outcome, pair: t.pair, time: t.exitTime || t.entryTime }; });
+    const node = (n, dir) => { const cls = dir === "win" ? "win" : dir === "loss" ? "loss" : "be"; return `<span class="tier-node active ${cls}">${n}</span>`; };
+    const dots = steps.map(s => {
+      const arrow = s.outcome === "win" ? "↑" : s.outcome === "loss" ? "↓" : "→";
+      const ac = s.outcome === "win" ? "pos" : s.outcome === "loss" ? "neg" : "";
+      return `<div class="tier-step" title="${esc(s.pair)} · ${fmtDate(s.time)} · T${s.from}${arrow}T${s.to}">${node(s.to, s.outcome)}<span class="tier-arrow ${ac}">${arrow}</span></div>`;
+    }).join("");
+    return `<div class="section-title">Tier Path · ${steps.length} trade${steps.length > 1 ? "s" : ""}</div><div class="strip-wrap"><div class="tier-strip"><span class="tier-node start">1</span><span class="tier-arrow">›</span>${dots}</div></div>`;
+  }
+  function gambleHistoryStrip() {
+    const chron = state.trades.filter(t => t.status === "closed" && t.gamble)
+      .sort((a, b) => (a.exitTime || a.entryTime || "").localeCompare(b.exitTime || b.entryTime || ""));
+    if (!chron.length) return `<div class="section-title">Gamble History</div><div class="calc-line" style="color:var(--muted)">No closed gamble trades.</div>`;
+    let w = 0, l = 0, b = 0;
+    const dots = chron.map(t => {
+      if (t.outcome === "win") w++; else if (t.outcome === "loss") l++; else b++;
+      const sym = t.outcome === "win" ? "W" : t.outcome === "loss" ? "L" : "B";
+      return `<span class="gamble-node ${t.outcome}" title="${esc(t.pair)} · ${fmtDate(t.exitTime || t.entryTime)} · ${(parseFloat(t.pnl) || 0) > 0 ? "+" : ""}${t.pnl || 0}">${sym}</span>`;
+    }).join("");
+    return `<div class="section-title">Gamble History · ${w}W ${l}L ${b}BE</div><div class="strip-wrap"><div class="gamble-strip">${dots}</div></div>`;
+  }
+  function calc(which) {
+    if (which === "combo") {
+      const sl = parseFloat(document.getElementById("tc_sl")?.value);
+      const rr = parseFloat(document.getElementById("tc_rr")?.value) || Tier.RR;
+      const out = document.getElementById("tcOut");
+      const cur = Tier.currentTier(state.trades);
+      const risk = Tier.stakeFor(cur);
+      if (!sl) { out.innerHTML = ""; return; }
+      const tp = sl * rr;
+      const conSize = risk / sl;
+      const conDisplay = conSize < 10
+        ? `<b>${conSize.toFixed(2)} mini con</b> <span style="color:var(--muted)">(${risk.toFixed(2)} ÷ ${sl})</span>`
+        : `<b>${(conSize / 10).toFixed(2)} con</b> <span style="color:var(--muted)">(${conSize.toFixed(2)} ÷ 10)</span>`;
+      out.innerHTML = `
+        <div class="stat-grid" style="margin-top:4px">
+          <div class="stat"><div class="label">TP pips</div><div class="num pos">${tp.toFixed(1)}</div><div class="sub">${rr} × ${sl} SL</div></div>
+          <div class="stat"><div class="label">Size to enter</div><div class="num">${conSize < 10 ? conSize.toFixed(2) : (conSize / 10).toFixed(2)}</div><div class="sub">${conSize < 10 ? "mini con" : "con"}</div></div>
+        </div>
+        <div class="calc-line" style="margin-top:12px">${conDisplay}</div>`;
+    }
+  }
+
+  /* ---------- STATS ---------- */
+  function renderStats() {
+    const s = Stats.compute(state.trades);
+    if (!s.closed) { app().innerHTML = `<div class="empty"><b>No closed trades</b>Close some trades to see stats.</div>`; return; }
+    const pf = s.profitFactor === Infinity ? "∞" : num(s.profitFactor);
+    app().innerHTML = `
+      <div class="stat-grid">
+        ${stat("Win Rate", num(s.winRate, 1) + "%", `${s.wins}W · ${s.losses}L · ${s.bes}BE`)}
+        ${stat("Total P&L", (s.totalPnl > 0 ? "+" : "") + num(s.totalPnl), null, sign(s.totalPnl))}
+        ${stat("Total R", (s.totalR > 0 ? "+" : "") + num(s.totalR), null, sign(s.totalR))}
+        ${stat("Expectancy", num(s.expectancyR) + "R", "per trade", sign(s.expectancyR))}
+        ${stat("Profit Factor", pf, "gross win / loss")}
+        ${stat("Avg R:R", num(s.avgRR), "planned")}
+        ${stat("Avg Win", "+" + num(s.avgWin), null, "pos")}
+        ${stat("Avg Loss", "-" + num(s.avgLoss), null, "neg")}
+        ${stat("Largest Win", "+" + num(s.largestWin), null, "pos")}
+        ${stat("Largest Loss", num(s.largestLoss), null, "neg")}
+        ${stat("Cur. Streak", (s.curStreak || 0) + (s.curType ? " " + s.curType[0].toUpperCase() : ""), `max ${s.maxWin}W / ${s.maxLoss}L`)}
+        ${stat("Avg Hold", Stats.fmtHold(s.avgHoldMs), "entry→exit")}
+      </div>
+      <div class="section-title">Equity Curve</div>
+      <div class="curve-wrap">${curveSvg(s.curve)}</div>
+      ${groupTable("By Setup", s.byTag)}
+      ${groupTable("By Pair", s.byPair)}
+      ${groupTable("By Tier", s.byTier)}`;
+  }
+  function stat(label, n, sub, cls = "") { return `<div class="stat"><div class="label">${label}</div><div class="num ${cls}">${n}</div>${sub ? `<div class="sub">${sub}</div>` : ""}</div>`; }
+  function groupTable(title, rows) {
+    if (!rows.length) return "";
+    return `<div class="section-title">${title}</div><table class="table"><thead><tr><th>${title.replace("By ", "")}</th><th>N</th><th>WR</th><th>P&L</th><th>R</th></tr></thead><tbody>
+      ${rows.map(g => `<tr><td>${esc(g.key)}</td><td>${g.n}</td><td>${num(g.wr, 0)}%</td><td class="${sign(g.pnl)}">${(g.pnl > 0 ? "+" : "") + num(g.pnl)}</td><td class="${sign(g.r)}">${(g.r > 0 ? "+" : "") + num(g.r)}</td></tr>`).join("")}</tbody></table>`;
+  }
+  function curveSvg(curve) {
+    if (curve.length < 2) return `<div class="sub" style="color:var(--muted)">Need ≥2 closed trades.</div>`;
+    const W = 320, H = 120, pad = 4;
+    const ys = curve.map(p => p.y);
+    const min = Math.min(0, ...ys), max = Math.max(0, ...ys), range = (max - min) || 1;
+    const pts = curve.map((p, i) => { const x = pad + (i / (curve.length - 1)) * (W - pad * 2); const y = H - pad - ((p.y - min) / range) * (H - pad * 2); return x.toFixed(1) + "," + y.toFixed(1); });
+    const zeroY = H - pad - ((0 - min) / range) * (H - pad * 2);
+    const col = ys[ys.length - 1] >= 0 ? "var(--accent)" : "var(--red)";
+    return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none" style="display:block"><line x1="0" y1="${zeroY}" x2="${W}" y2="${zeroY}" stroke="var(--line)" stroke-dasharray="3 3"/><polyline points="${pts.join(" ")}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/></svg>`;
+  }
+
+  /* ---------- MANAGE ---------- */
+  function renderManage() {
+    app().innerHTML = `
+      ${manageList("Pairs", "pairs", state.pairs)}
+      ${manageList("Setup Tags", "tags", state.tags)}
+      <div class="section-title">Tiers</div>
+      <div class="calc-line" style="color:var(--muted)">Tiers are fixed (1–5) and driven by the tier engine — see the <b>Tier</b> tab.</div>`;
+  }
+  function manageList(title, key, items) {
+    return `<div class="section-title">${title}</div>
+      <div class="add-row"><input id="add_${key}" placeholder="Add ${title.toLowerCase().replace(/s$/, "")}…" /><button class="btn" onclick="UI.addMeta('${key}')">Add</button></div>
+      ${items.map((it, i) => `<div class="list-item"><span>${esc(it)}</span><button class="x" onclick="UI.removeMeta('${key}',${i})">×</button></div>`).join("")}`;
+  }
+  async function addMeta(key) {
+    const input = document.getElementById("add_" + key);
+    const v = input.value.trim(); if (!v) return;
+    const arr = state[key]; if (!arr.includes(v)) arr.push(v);
+    await DB.meta.set(key, arr); await refresh(); renderManage();
+  }
+  async function removeMeta(key, i) { state[key].splice(i, 1); await DB.meta.set(key, state[key]); await refresh(); renderManage(); }
+
+  /* ---------- BACKUP ---------- */
+  function renderBackup() {
+    app().innerHTML = `
+      <div class="card"><div class="section-title" style="margin-top:0">Export</div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:12px">JSON = full backup (trades + images) to re-import anywhere. ZIP = trades.json + browseable PNG files.</p>
+        <div class="btn-row"><button class="btn" onclick="UI.exportJSON()">Export JSON</button><button class="btn" onclick="UI.exportZIP()">Export ZIP</button></div>
+      </div>
+      <div class="card"><div class="section-title" style="margin-top:0">Import / Restore</div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Load a previously exported JSON. <b>Merge</b> adds; <b>Replace</b> wipes first.</p>
+        <input type="file" id="importFile" accept="application/json,.json" />
+        <div class="btn-row" style="margin-top:12px"><button class="btn-ghost" onclick="UI.importJSON(false)">Merge</button><button class="btn-ghost" onclick="UI.importJSON(true)">Replace all</button></div>
+      </div>
+      <div class="card"><div class="section-title" style="margin-top:0">Danger zone</div><button class="btn btn-danger" onclick="UI.wipe()">Erase all data</button></div>`;
+  }
+  function download(blob, name) { const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+  function dateStamp() { return new Date().toISOString().slice(0, 10); }
+  async function exportJSON() {
+    const payload = { version: 1, exported: new Date().toISOString(), meta: { pairs: state.pairs, tags: state.tags }, trades: state.trades };
+    download(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }), `trade-journal-${dateStamp()}.json`);
+  }
+  async function exportZIP() {
+    if (typeof JSZip === "undefined") { alert("ZIP library still loading, try again in a sec."); return; }
+    const zip = new JSZip();
+    const clean = state.trades.map(t => ({ ...t, images: (t.images || []).map(im => ({ id: im.id, label: im.label, file: `images/${t.id}_${im.id}.png` })) }));
+    zip.file("trades.json", JSON.stringify({ version: 1, exported: new Date().toISOString(), meta: { pairs: state.pairs, tags: state.tags }, trades: clean }, null, 2));
+    const imgFolder = zip.folder("images");
+    state.trades.forEach(t => (t.images || []).forEach(im => { imgFolder.file(`${t.id}_${im.id}.png`, im.dataUrl.split(",")[1], { base64: true }); }));
+    download(await zip.generateAsync({ type: "blob" }), `trade-journal-${dateStamp()}.zip`);
+  }
+  async function importJSON(replace) {
+    const input = document.getElementById("importFile");
+    if (!input.files.length) { alert("Pick a JSON file first."); return; }
+    try {
+      const data = JSON.parse(await input.files[0].text());
+      if (!data.trades) throw new Error("No trades field");
+      if (replace) { if (!confirm("Replace ALL current data?")) return; await DB.trades.clear(); }
+      for (const t of data.trades) {
+        if (t.images && t.images[0] && !t.images[0].dataUrl) { alert("This looks like a ZIP-style export — import the JSON export instead (it embeds images)."); return; }
+        await DB.trades.put(t);
+      }
+      if (data.meta) { await DB.meta.set("pairs", data.meta.pairs || state.pairs); await DB.meta.set("tags", data.meta.tags || state.tags); }
+      await refresh(); alert("Import complete."); go("trades");
+    } catch (e) { alert("Import failed: " + e.message); }
+  }
+  async function wipe() {
+    if (!confirm("Erase ALL trades permanently? Export first if unsure.")) return;
+    if (!confirm("Really erase everything? This cannot be undone.")) return;
+    await DB.trades.clear(); await refresh(); go("tier");
+  }
+
+  /* ---------- ROUTER ---------- */
+  function go(view) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === view));
+    document.getElementById("fab").style.display = view === "trades" ? "block" : "none";
+    if (view === "tier") renderTier();
+    else if (view === "trades") renderTrades();
+    else if (view === "stats") renderStats();
+    else if (view === "manage") renderManage();
+    else if (view === "backup") renderBackup();
+  }
+
+  return {
+    refresh, go, renderTrades, newTrade, openTrade, setFilter,
+    pickPair, pickDir, pickGamble, onTierChange, stampNow, pickOutcome, toggleTag, recalcRR,
+    addImages, removeImg, save, del, closeModal, lightbox, calc, renderTier,
+    addMeta, removeMeta, exportJSON, exportZIP, importJSON, wipe, _draft: null
+  };
+})();
+
+/* ============================== BOOTSTRAP ============================== */
+(async function () {
+  await DB.open();
+  await UI.refresh();
+  UI.go("tier");
+  document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => UI.go(tab.dataset.view)));
+  document.getElementById("fab").addEventListener("click", () => UI.newTrade());
+  let deferred;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault(); deferred = e;
+    const b = document.getElementById("installBtn"); b.hidden = false;
+    b.onclick = async () => { deferred.prompt(); deferred = null; b.hidden = true; };
+  });
+})();
+</script>
 </body>
 </html>
