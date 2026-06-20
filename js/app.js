@@ -2,7 +2,7 @@
 (async function () {
   await DB.open();
   await UI.refresh();
-  UI.go("trades");
+  UI.go("tier");
 
   document.querySelectorAll(".tab").forEach(tab =>
     tab.addEventListener("click", () => UI.go(tab.dataset.view)));

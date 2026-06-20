@@ -587,12 +587,8 @@ const UI = (() => {
           <div class="field"><label>Risk amount ($)</label><input id="ps_risk" type="number" step="any" value="${curStake.toFixed(2)}" oninput="UI.calc('ps')" /></div>
           <div class="field"><label>SL (pips)</label><input id="ps_sl" type="number" step="any" placeholder="e.g. 20" oninput="UI.calc('ps')" /></div>
         </div>
-        <div class="field-row">
-          <div class="field"><label>Pip value /unit</label><input id="ps_pv" type="number" step="any" value="0.0001" oninput="UI.calc('ps')" /></div>
-          <div class="field"><label>Contract size</label><input id="ps_cs" type="number" step="any" value="100000" oninput="UI.calc('ps')" /></div>
-        </div>
         <div class="calc-line" id="psOut"></div>
-        <div class="calc-line" style="color:var(--muted)">Risk auto-filled from current Tier ${cur} stake. Pip value 0.0001 + contract 100k = standard FX lot ($10/pip). Adjust for BTC/other instruments.</div>
+        <div class="calc-line" style="color:var(--muted)">Con size = risk ÷ SL pips. Under 10 → mini con. 10 or more → ÷10 → con. Risk auto-filled from current Tier ${cur} stake.</div>
       </div>`;
   }
 
