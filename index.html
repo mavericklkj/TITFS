@@ -240,7 +240,7 @@ const Trades = (() => {
   function holdMs(t) { if (!t.entryTime || !t.exitTime) return null; const a = new Date(t.entryTime).getTime(), b = new Date(t.exitTime).getTime(); return (b > a) ? b - a : null; }
   function nowLocal() { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); }
   function blank() {
-    return { id: uid(), status: "open", pair: "", direction: "long", tier: "", gamble: false,
+    return { id: uid(), status: "open", pair: "", direction: "long", tier: "", rr: "",
       slPips: "", tpPips: "", entryTime: "", exitTime: "", tags: [], outcome: "", pnl: "", notes: "", images: [] };
   }
   return { DEFAULT_PAIRS, DEFAULT_TAGS, uid, rr, rMultiple, holdMs, blank, nowLocal };
@@ -248,7 +248,7 @@ const Trades = (() => {
 
 /* ============================== TIER ENGINE ============================== */
 const Tier = (() => {
-  const BASE = 100, RR = 2.4, MAX = 5;
+  const BASE = 100, RR = 2.4, MAX = 4;
   function ladder(base = BASE, rr = RR) {
     const rows = []; let stake = base;
     for (let i = 1; i <= MAX; i++) { const profit = stake * rr; rows.push({ tier: i, stake, rr, profit }); stake = profit; }
@@ -261,7 +261,7 @@ const Tier = (() => {
     return tierNum;
   }
   function currentTier(trades) {
-    const chron = trades.filter(t => t.status === "closed" && !t.gamble)
+    const chron = trades.filter(t => t.status === "closed")
       .sort((a, b) => (a.exitTime || a.entryTime || "").localeCompare(b.exitTime || b.entryTime || ""));
     let tier = 1; chron.forEach(t => { tier = next(tier, t.outcome); }); return tier;
   }
@@ -318,7 +318,7 @@ const Stats = (() => {
       largestWin, largestLoss, curStreak, curType, maxWin, maxLoss, avgHoldMs, avgRR, curve,
       byTag: groupStats(closed, t => t.tags || []),
       byPair: groupStats(closed, t => [t.pair]),
-      byTier: groupStats(closed, t => [t.gamble ? "Gamble" : (t.tier ? "Tier " + t.tier : "")])
+      byTier: groupStats(closed, t => [t.tier ? "Tier " + t.tier : ""])
     };
   }
   function groupStats(closed, keyFn) {
@@ -399,7 +399,7 @@ const UI = (() => {
     const rrv = Trades.rr(t.slPips, t.tpPips);
     const pnlNum = parseFloat(t.pnl);
     const outBadge = t.status === "open" ? `<span class="badge open">OPEN</span>` : `<span class="badge ${t.outcome}">${t.outcome.toUpperCase()}</span>`;
-    const tierLabel = t.gamble ? `<span class="badge gamble">GAMBLE</span>` : (t.tier ? `<span class="tag-chip">T${t.tier}</span>` : "");
+    const tierLabel = t.tier ? `<span class="tag-chip">T${t.tier}</span>` : "";
     return `
       <div class="card" onclick="UI.openTrade('${t.id}')">
         <div class="card-head">
@@ -425,7 +425,7 @@ const UI = (() => {
   function newTrade() { openForm(Trades.blank(), "new"); }
   async function openTrade(id) { openForm(await DB.trades.get(id), "edit"); }
   function openForm(t, mode) {
-    if (mode === "new" && !t.gamble && !t.tier) t.tier = Tier.currentTier(state.trades);
+    if (mode === "new" && !t.tier) t.tier = Tier.currentTier(state.trades);
     modalRoot().innerHTML = `
       <div class="modal-bg" onclick="if(event.target===this)UI.closeModal()">
         <div class="modal">
@@ -439,19 +439,14 @@ const UI = (() => {
               <button type="button" class="${t.direction === "short" ? "sel short" : ""}" onclick="UI.pickDir('short')">SHORT</button>
             </div>
           </div>
-          <div class="field"><label>Trade type</label>
-            <div class="seg" id="gambleSeg">
-              <button type="button" class="${!t.gamble ? "sel long" : ""}" onclick="UI.pickGamble(false)">TIERED</button>
-              <button type="button" class="${t.gamble ? "sel short" : ""}" onclick="UI.pickGamble(true)">GAMBLE</button>
-            </div>
-          </div>
           <div class="field" id="tierField"><label>Tier</label>
-            <select id="f_tier" onchange="UI.onTierChange(this.value)">${[1,2,3,4,5].map(n => `<option value="${n}" ${String(t.tier) === String(n) ? "selected" : ""}>Tier ${n}</option>`).join("")}</select>
+            <select id="f_tier" onchange="UI.onTierChange(this.value)">${[1,2,3,4].map(n => `<option value="${n}" ${String(t.tier) === String(n) ? "selected" : ""}>Tier ${n}</option>`).join("")}</select>
             <div class="calc-line" id="tierStakeLine"></div>
           </div>
-          <div class="field-row">
+          <div class="field-row-3">
+            <div class="field"><label>RR</label><input id="f_rr" type="number" step="any" value="${esc(t.rr || Tier.RR)}" oninput="UI.recalcRR()" /></div>
             <div class="field"><label>SL (pips)</label><input id="f_sl" type="number" step="any" value="${esc(t.slPips)}" oninput="UI.recalcRR()" /></div>
-            <div class="field"><label>TP (pips)</label><input id="f_tp" type="number" step="any" value="${esc(t.tpPips)}" oninput="UI.recalcRR()" /></div>
+            <div class="field"><label>TP (pips)</label><input id="f_tp" type="number" step="any" value="${esc(t.tpPips)}" placeholder="auto" oninput="UI.tpEdited()" /></div>
           </div>
           <div class="calc-line" id="rrLine"></div>
           <div class="field"><label>Entry time <span style="color:var(--muted);text-transform:none;letter-spacing:0">· auto on save</span></label>
@@ -474,7 +469,7 @@ const UI = (() => {
           </div>
           <div class="field"><label>Result screenshot(s)</label><input type="file" accept="image/*" multiple onchange="UI.addImages(this,'result')" /></div>
           <div class="thumbs" id="imgResult"></div>
-          <div class="field"><label>Notes</label><textarea id="f_notes">${esc(t.notes)}</textarea></div>
+          <div class="field"><label>Notes</label><textarea id="f_notes" rows="6" style="min-height:140px;max-height:300px;overflow-y:auto">${esc(t.notes)}</textarea></div>
           <div class="btn-row">
             <button class="btn" style="flex:1" onclick="UI.save()">Save</button>
             ${mode === "edit" ? `<button class="btn btn-danger" onclick="UI.del('${t.id}')">Delete</button>` : ""}
@@ -486,21 +481,12 @@ const UI = (() => {
   }
   function pickPair(p) { UI._draft.pair = p; document.querySelectorAll("#pairPick button").forEach(b => b.classList.toggle("sel", b.textContent === p)); }
   function pickDir(d) { UI._draft.direction = d; const s = document.getElementById("dirSeg"); s.children[0].className = d === "long" ? "sel long" : ""; s.children[1].className = d === "short" ? "sel short" : ""; }
-  function pickGamble(g) {
-    UI._draft.gamble = g;
-    const s = document.getElementById("gambleSeg");
-    s.children[0].className = !g ? "sel long" : ""; s.children[1].className = g ? "sel short" : "";
-    if (g) UI._draft.tier = ""; else if (!UI._draft.tier) UI._draft.tier = Tier.currentTier(state.trades);
-    updateTierUI();
-  }
   function onTierChange(v) { UI._draft.tier = v; updateTierUI(); }
   function stampNow(id) { const el = document.getElementById(id); if (el) el.value = Trades.nowLocal(); }
   function updateTierUI() {
-    const field = document.getElementById("tierField"), line = document.getElementById("tierStakeLine"), sel = document.getElementById("f_tier");
-    if (!field) return;
-    field.style.display = UI._draft.gamble ? "none" : "block";
+    const line = document.getElementById("tierStakeLine"), sel = document.getElementById("f_tier");
     if (sel && UI._draft.tier) sel.value = UI._draft.tier;
-    if (line && UI._draft.tier) { const stake = Tier.stakeFor(Number(UI._draft.tier)); line.innerHTML = `Stake <b>$${stake.toFixed(2)}</b> · TP profit <b>$${(stake * Tier.RR).toFixed(2)}</b> @ ${Tier.RR} RR`; }
+    if (line && UI._draft.tier) { const stake = Tier.stakeFor(Number(UI._draft.tier)); line.innerHTML = `Stake <b>${stake.toFixed(2)}</b> · TP profit <b>${(stake * Tier.RR).toFixed(2)}</b> @ ${UI._draft.rr || Tier.RR} RR`; }
     else if (line) line.innerHTML = "";
   }
   function pickOutcome(o) {
@@ -514,9 +500,22 @@ const UI = (() => {
     document.querySelectorAll("#tagPick button").forEach(b => b.classList.toggle("sel", arr.includes(b.textContent)));
   }
   function recalcRR() {
-    const sl = parseFloat(document.getElementById("f_sl")?.value), tp = parseFloat(document.getElementById("f_tp")?.value);
+    const rr = parseFloat(document.getElementById("f_rr")?.value);
+    const sl = parseFloat(document.getElementById("f_sl")?.value);
+    const tpEl = document.getElementById("f_tp");
     const line = document.getElementById("rrLine");
-    if (line) line.innerHTML = (sl && tp) ? `R:R <b>${(tp / sl).toFixed(2)}</b>` : "";
+    if (rr && sl) {
+      const tp = rr * sl;
+      tpEl.value = tp.toFixed(1);
+      if (line) line.innerHTML = `TP <b>${tp.toFixed(1)} pips</b> = ${rr} × ${sl} SL`;
+    } else if (line) line.innerHTML = "";
+    updateTierUI();
+  }
+  function tpEdited() {
+    const tp = parseFloat(document.getElementById("f_tp")?.value);
+    const sl = parseFloat(document.getElementById("f_sl")?.value);
+    const line = document.getElementById("rrLine");
+    if (tp && sl && line) line.innerHTML = `Implied RR <b>${(tp / sl).toFixed(2)}</b> (manual TP)`;
   }
   async function addImages(input, label) {
     for (const file of [...input.files]) { const dataUrl = await fileToDataUrl(file); UI._draft.images.push({ id: Trades.uid(), label, dataUrl }); }
@@ -534,7 +533,8 @@ const UI = (() => {
   function fileToDataUrl(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(file); }); }
   async function save() {
     const d = UI._draft;
-    d.tier = d.gamble ? "" : document.getElementById("f_tier").value;
+    d.tier = document.getElementById("f_tier").value;
+    d.rr = document.getElementById("f_rr").value || Tier.RR;
     d.slPips = document.getElementById("f_sl").value;
     d.tpPips = document.getElementById("f_tp").value;
     d.entryTime = document.getElementById("f_entry").value;
@@ -563,12 +563,11 @@ const UI = (() => {
         ${stat("Tier Stake", "$" + num(curStake), "risk @ " + Tier.RR + " RR", "pos")}
       </div>
       ${tierHistoryStrip()}
-      ${gambleHistoryStrip()}
       <div class="section-title">Ladder</div>
       <table class="table"><thead><tr><th>Tier</th><th>Stake (risk)</th><th>TP profit</th><th>RR</th></tr></thead><tbody>
         ${rows.map(r => `<tr style="${r.tier === cur ? "background:var(--bg-3)" : ""}"><td>${r.tier === cur ? "▶ " : ""}Tier ${r.tier}</td><td>$${num(r.stake)}</td><td class="pos">+$${num(r.profit)}</td><td>${r.rr}</td></tr>`).join("")}
       </tbody></table>
-      <div class="calc-line" style="margin-top:10px">TP → up one tier · SL → down one tier · BE → hold · floor T1 · cap T5. Gamble excluded.</div>
+      <div class="calc-line" style="margin-top:10px">TP → up one tier · SL → down one tier · BE → hold · floor T1 · cap T4.</div>
       <div class="section-title">Trade Calculator</div>
       <div class="card">
         <div class="calc-line" style="color:var(--muted);margin-bottom:12px">Auto-pulls current <b style="color:var(--accent)">Tier ${cur}</b> · risk <b style="color:var(--accent)">${curStake.toFixed(2)}</b> @ ${Tier.RR} RR. Just enter SL.</div>
@@ -580,7 +579,7 @@ const UI = (() => {
       </div>`;
   }
   function tierHistoryStrip() {
-    const chron = state.trades.filter(t => t.status === "closed" && !t.gamble)
+    const chron = state.trades.filter(t => t.status === "closed")
       .sort((a, b) => (a.exitTime || a.entryTime || "").localeCompare(b.exitTime || b.entryTime || ""));
     if (!chron.length) return `<div class="section-title">Tier Path</div><div class="calc-line" style="color:var(--muted)">No closed tiered trades yet.</div>`;
     let tier = 1;
@@ -592,18 +591,6 @@ const UI = (() => {
       return `<div class="tier-step" title="${esc(s.pair)} · ${fmtDate(s.time)} · T${s.from}${arrow}T${s.to}">${node(s.to, s.outcome)}<span class="tier-arrow ${ac}">${arrow}</span></div>`;
     }).join("");
     return `<div class="section-title">Tier Path · ${steps.length} trade${steps.length > 1 ? "s" : ""}</div><div class="strip-wrap"><div class="tier-strip"><span class="tier-node start">1</span><span class="tier-arrow">›</span>${dots}</div></div>`;
-  }
-  function gambleHistoryStrip() {
-    const chron = state.trades.filter(t => t.status === "closed" && t.gamble)
-      .sort((a, b) => (a.exitTime || a.entryTime || "").localeCompare(b.exitTime || b.entryTime || ""));
-    if (!chron.length) return `<div class="section-title">Gamble History</div><div class="calc-line" style="color:var(--muted)">No closed gamble trades.</div>`;
-    let w = 0, l = 0, b = 0;
-    const dots = chron.map(t => {
-      if (t.outcome === "win") w++; else if (t.outcome === "loss") l++; else b++;
-      const sym = t.outcome === "win" ? "W" : t.outcome === "loss" ? "L" : "B";
-      return `<span class="gamble-node ${t.outcome}" title="${esc(t.pair)} · ${fmtDate(t.exitTime || t.entryTime)} · ${(parseFloat(t.pnl) || 0) > 0 ? "+" : ""}${t.pnl || 0}">${sym}</span>`;
-    }).join("");
-    return `<div class="section-title">Gamble History · ${w}W ${l}L ${b}BE</div><div class="strip-wrap"><div class="gamble-strip">${dots}</div></div>`;
   }
   function calc(which) {
     if (which === "combo") {
@@ -754,7 +741,7 @@ const UI = (() => {
 
   return {
     refresh, go, renderTrades, newTrade, openTrade, setFilter,
-    pickPair, pickDir, pickGamble, onTierChange, stampNow, pickOutcome, toggleTag, recalcRR,
+    pickPair, pickDir, onTierChange, stampNow, pickOutcome, toggleTag, recalcRR, tpEdited,
     addImages, removeImg, save, del, closeModal, lightbox, calc, renderTier,
     addMeta, removeMeta, exportJSON, exportZIP, importJSON, wipe, _draft: null
   };
