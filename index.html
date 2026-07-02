@@ -422,7 +422,7 @@ const UI = (() => {
   }
 
   /* ---------- TRADE FORM ---------- */
-  function newTrade() { openForm(Trades.blank(), "new"); }
+  async function newTrade() { await refresh(); openForm(Trades.blank(), "new"); }
   async function openTrade(id) { openForm(await DB.trades.get(id), "edit"); }
   function openForm(t, mode) {
     if (mode === "new" && !t.tier) t.tier = Tier.currentTier(state.trades);
@@ -465,7 +465,7 @@ const UI = (() => {
             <div class="field"><label>Exit time <span style="color:var(--muted);text-transform:none;letter-spacing:0">· auto on close</span></label>
               <div style="display:flex;gap:8px"><input id="f_exit" type="datetime-local" value="${esc(t.exitTime)}" style="flex:1;min-width:0" /><button type="button" class="btn-ghost" onclick="UI.stampNow('f_exit')">Now</button></div>
             </div>
-            <div class="field"><label>P&L</label><input id="f_pnl" type="number" step="any" value="${esc(t.pnl)}" /></div>
+            <div class="field"><label>P&L <span style="color:var(--muted);text-transform:none;letter-spacing:0">· auto from tier, editable</span></label><input id="f_pnl" type="number" step="any" value="${esc(t.pnl)}" /></div>
           </div>
           <div class="field"><label>Result screenshot(s)</label><input type="file" accept="image/*" multiple onchange="UI.addImages(this,'result')" /></div>
           <div class="thumbs" id="imgResult"></div>
@@ -493,6 +493,18 @@ const UI = (() => {
     UI._draft.outcome = o;
     const seg = document.getElementById("outSeg");
     [...seg.children].forEach((b, i) => { const oo = ["win", "loss", "be"][i]; b.className = UI._draft.outcome === oo ? "sel " + (oo === "win" ? "long" : oo === "loss" ? "short" : "") : ""; });
+    // Auto-fill P&L from the trade's tier (editable afterwards)
+    const tierNum = Number(UI._draft.tier);
+    const pnlEl = document.getElementById("f_pnl");
+    if (tierNum && pnlEl) {
+      const stake = Tier.stakeFor(tierNum);
+      const rr = parseFloat(UI._draft.rr || document.getElementById("f_rr")?.value) || Tier.RR;
+      let val = "";
+      if (o === "win") val = (stake * rr).toFixed(2);
+      else if (o === "loss") val = (-stake).toFixed(2);
+      else if (o === "be") val = "0";
+      pnlEl.value = val;
+    }
   }
   function toggleTag(tg) {
     const arr = UI._draft.tags || (UI._draft.tags = []);
