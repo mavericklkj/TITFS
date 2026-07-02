@@ -3,180 +3,349 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#0d0f0d" />
+<meta name="theme-color" content="#0a0c0a" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Trade Journal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
 <style>
-/* ============================== STYLES ============================== */
+/* ============================== DESIGN SYSTEM ============================== */
 :root {
-  --bg: #0d0f0d;
-  --bg-2: #141813;
-  --bg-3: #1b201a;
-  --line: #28301f;
-  --text: #e6efe2;
-  --muted: #8b9a82;
+  --bg: #0a0c0a;
+  --bg-2: #10140f;
+  --bg-3: #171c15;
+  --bg-4: #1e241c;
+  --line: #232b1f;
+  --line-2: #2e3828;
+  --text: #e9f0e5;
+  --muted: #7f8f76;
+  --dim: #5a6852;
   --accent: #4ade80;
+  --accent-glow: rgba(74,222,128,.14);
   --accent-dim: #2c7a4d;
   --red: #f87171;
+  --red-glow: rgba(248,113,113,.12);
   --amber: #fbbf24;
-  --radius: 14px;
+  --amber-glow: rgba(251,191,36,.12);
+  --radius: 16px;
+  --radius-sm: 11px;
   --mono: "JetBrains Mono", ui-monospace, monospace;
   --display: "Syne", system-ui, sans-serif;
+  --shadow: 0 8px 32px rgba(0,0,0,.45);
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
 body {
-  background: var(--bg); color: var(--text); font-family: var(--mono);
-  font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased;
-  padding-bottom: 90px; min-height: 100vh;
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(74,222,128,.05), transparent 60%),
+    var(--bg);
+  color: var(--text); font-family: var(--mono);
+  font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  padding-bottom: 100px; min-height: 100vh;
 }
+::selection { background: var(--accent-dim); color: var(--text); }
+
+/* ============================== TOP BAR ============================== */
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 18px; padding-top: calc(16px + env(safe-area-inset-top));
+  padding: 18px; padding-top: calc(18px + env(safe-area-inset-top));
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(10,12,10,.82); backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
-  position: sticky; top: 0; background: rgba(13,15,13,.9);
-  backdrop-filter: blur(10px); z-index: 20;
 }
-.brand { font-family: var(--display); font-size: 19px; letter-spacing: 1px; font-weight: 800; }
-.brand span { color: var(--accent); }
+.brand { font-family: var(--display); font-size: 20px; letter-spacing: 1.5px; font-weight: 800; }
+.brand span { color: var(--accent); text-shadow: 0 0 18px var(--accent-glow); }
+.brand-sub { font-size: 10px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-top: -2px; }
+
+/* ============================== TABS ============================== */
 .tabs {
-  display: flex; gap: 4px; padding: 10px 12px;
-  position: sticky; top: 57px; background: var(--bg); z-index: 19;
+  display: flex; gap: 5px; padding: 12px 14px;
+  position: sticky; top: 61px; z-index: 19;
+  background: rgba(10,12,10,.92); backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line); overflow-x: auto;
+  scrollbar-width: none;
 }
+.tabs::-webkit-scrollbar { display: none; }
 .tab {
-  flex: 1; min-width: max-content; padding: 9px 14px; border: 1px solid var(--line);
-  background: var(--bg-2); color: var(--muted); border-radius: 10px;
-  font-family: var(--mono); font-size: 13px; font-weight: 500; cursor: pointer; transition: .15s;
+  flex: 1; min-width: max-content; padding: 10px 16px;
+  border: 1px solid transparent; background: transparent; color: var(--muted);
+  border-radius: 999px; font-family: var(--mono); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .2s ease; position: relative;
 }
-.tab.active { color: var(--bg); background: var(--accent); border-color: var(--accent); font-weight: 700; }
-main { padding: 16px; max-width: 760px; margin: 0 auto; }
-.btn { padding: 11px 16px; border-radius: 10px; border: none; background: var(--accent);
-  color: var(--bg); font-family: var(--mono); font-weight: 700; font-size: 14px; cursor: pointer; }
-.btn:active { transform: scale(.98); }
-.btn-ghost { padding: 8px 14px; border-radius: 9px; border: 1px solid var(--line);
-  background: var(--bg-2); color: var(--text); font-family: var(--mono); font-size: 13px; cursor: pointer; }
-.btn-danger { background: var(--red); color: #1a0a0a; }
-.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.tab:hover { color: var(--text); background: var(--bg-3); }
+.tab.active {
+  color: var(--bg); background: var(--accent); font-weight: 700;
+  box-shadow: 0 2px 16px var(--accent-glow), 0 0 0 1px var(--accent);
+}
+
+main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .25s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ============================== BUTTONS ============================== */
+.btn {
+  padding: 12px 18px; border-radius: var(--radius-sm); border: none;
+  background: linear-gradient(180deg, #56e88f, var(--accent));
+  color: #06170c; font-family: var(--mono); font-weight: 700; font-size: 14px;
+  cursor: pointer; transition: all .15s ease; box-shadow: 0 2px 14px var(--accent-glow);
+}
+.btn:hover { filter: brightness(1.06); }
+.btn:active { transform: scale(.97); }
+.btn-ghost {
+  padding: 9px 15px; border-radius: var(--radius-sm); border: 1px solid var(--line-2);
+  background: var(--bg-3); color: var(--text); font-family: var(--mono); font-size: 13px;
+  cursor: pointer; transition: all .15s ease;
+}
+.btn-ghost:hover { border-color: var(--accent-dim); color: var(--accent); }
+.btn-danger { background: linear-gradient(180deg, #fb8b8b, var(--red)); color: #1c0808; box-shadow: 0 2px 14px var(--red-glow); }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
 .fab {
-  position: fixed; right: 18px; bottom: calc(20px + env(safe-area-inset-bottom));
-  width: 58px; height: 58px; border-radius: 50%; border: none;
-  background: var(--accent); color: var(--bg); font-size: 30px; font-weight: 700;
-  cursor: pointer; z-index: 30; box-shadow: 0 6px 24px rgba(74,222,128,.35);
+  position: fixed; right: 20px; bottom: calc(22px + env(safe-area-inset-bottom));
+  width: 60px; height: 60px; border-radius: 50%; border: none;
+  background: linear-gradient(180deg, #56e88f, var(--accent));
+  color: #06170c; font-size: 30px; font-weight: 700; cursor: pointer; z-index: 30;
+  box-shadow: 0 8px 28px rgba(74,222,128,.4), 0 2px 8px rgba(0,0,0,.4);
+  transition: transform .15s ease;
 }
-.card { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 14px; margin-bottom: 12px; }
-.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.pair { font-family: var(--display); font-size: 17px; font-weight: 700; }
-.badge { font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 700; letter-spacing: .5px; }
-.badge.open { background: rgba(251,191,36,.15); color: var(--amber); }
-.badge.win { background: rgba(74,222,128,.15); color: var(--accent); }
-.badge.loss { background: rgba(248,113,113,.15); color: var(--red); }
-.badge.be { background: rgba(139,154,130,.18); color: var(--muted); }
-.badge.long { background: rgba(74,222,128,.12); color: var(--accent); }
-.badge.short { background: rgba(248,113,113,.12); color: var(--red); }
-.badge.gamble { background: rgba(251,191,36,.15); color: var(--amber); }
-.meta-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px 12px; margin-top: 12px; }
-.meta { display: flex; flex-direction: column; }
-.meta .k { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
-.meta .v { font-size: 14px; font-weight: 500; margin-top: 1px; }
+.fab:hover { transform: scale(1.06); }
+.fab:active { transform: scale(.95); }
+
+/* ============================== CARDS ============================== */
+.card {
+  background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 12px; transition: border-color .2s ease;
+}
+.trade-card { cursor: pointer; position: relative; overflow: hidden; }
+.trade-card:hover { border-color: var(--line-2); }
+.trade-card::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--amber);
+}
+.trade-card.win::before { background: var(--accent); }
+.trade-card.loss::before { background: var(--red); }
+.trade-card.be::before { background: var(--dim); }
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.card-head-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pair { font-family: var(--display); font-size: 18px; font-weight: 800; letter-spacing: .5px; }
+
+.badge {
+  font-size: 10px; padding: 4px 10px; border-radius: 999px; font-weight: 700;
+  letter-spacing: .8px; text-transform: uppercase;
+}
+.badge.open { background: var(--amber-glow); color: var(--amber); border: 1px solid rgba(251,191,36,.3); }
+.badge.win { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(74,222,128,.3); }
+.badge.loss { background: var(--red-glow); color: var(--red); border: 1px solid rgba(248,113,113,.3); }
+.badge.be { background: rgba(127,143,118,.14); color: var(--muted); border: 1px solid var(--line-2); }
+.badge.long { background: var(--accent-glow); color: var(--accent); }
+.badge.short { background: var(--red-glow); color: var(--red); }
+
+.tier-pill {
+  font-size: 10px; padding: 4px 9px; border-radius: 7px; font-weight: 700;
+  background: var(--bg-4); border: 1px solid var(--line-2); color: var(--muted);
+}
+
+.meta-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px 12px; margin-top: 14px; }
+.meta .k { font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; display: block; }
+.meta .v { font-size: 14px; font-weight: 600; margin-top: 2px; display: block; }
 .meta .v.pos { color: var(--accent); }
 .meta .v.neg { color: var(--red); }
-.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-.tag-chip { font-size: 11px; padding: 4px 10px; border-radius: 999px;
-  background: var(--bg-3); border: 1px solid var(--line); color: var(--muted); }
-.thumbs { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-.thumb { width: 60px; height: 60px; border-radius: 8px; object-fit: cover;
-  border: 1px solid var(--line); cursor: pointer; }
-.section-title { font-family: var(--display); font-size: 13px; text-transform: uppercase;
-  letter-spacing: 1px; color: var(--muted); margin: 18px 2px 10px; }
-.empty { text-align: center; color: var(--muted); padding: 50px 20px; }
-.empty b { font-family: var(--display); display: block; font-size: 16px; color: var(--text); margin-bottom: 6px; }
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase;
-  letter-spacing: .6px; margin-bottom: 6px; }
-.field input, .field select, .field textarea {
-  width: 100%; padding: 11px 12px; background: var(--bg-3); border: 1px solid var(--line);
-  border-radius: 10px; color: var(--text); font-family: var(--mono); font-size: 14px;
+
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.tag-chip {
+  font-size: 11px; padding: 4px 11px; border-radius: 999px;
+  background: var(--bg-4); border: 1px solid var(--line-2); color: var(--muted);
 }
-.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent-dim); }
-.field textarea { resize: vertical; min-height: 64px; }
+.thumbs { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.thumb {
+  width: 62px; height: 62px; border-radius: 10px; object-fit: cover;
+  border: 1px solid var(--line-2); cursor: pointer; transition: transform .15s ease, border-color .15s ease;
+}
+.thumb:hover { transform: scale(1.05); border-color: var(--accent-dim); }
+
+.section-title {
+  font-family: var(--display); font-size: 12px; text-transform: uppercase;
+  letter-spacing: 2px; color: var(--muted); margin: 24px 2px 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-title::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+.empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+.empty b { font-family: var(--display); display: block; font-size: 17px; color: var(--text); margin-bottom: 8px; }
+
+/* ============================== FORMS ============================== */
+.field { margin-bottom: 15px; }
+.field label {
+  display: block; font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 1.2px; margin-bottom: 7px; font-weight: 600;
+}
+.field label .hint { color: var(--dim); text-transform: none; letter-spacing: 0; font-weight: 400; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 12px 13px; background: var(--bg-4); border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm); color: var(--text); font-family: var(--mono); font-size: 15px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--accent-dim); box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.field textarea { resize: vertical; min-height: 140px; max-height: 320px; overflow-y: auto; line-height: 1.6; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.chip-pick { display: flex; gap: 6px; flex-wrap: wrap; }
-.chip-pick button { font-size: 12px; padding: 7px 12px; border-radius: 999px;
-  background: var(--bg-3); border: 1px solid var(--line); color: var(--muted); cursor: pointer; font-family: var(--mono); }
-.chip-pick button.sel { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
-.seg { display: flex; gap: 6px; }
-.seg button { flex: 1; padding: 10px; border-radius: 10px; background: var(--bg-3);
-  border: 1px solid var(--line); color: var(--muted); cursor: pointer; font-family: var(--mono); font-weight: 600; }
-.seg button.sel.long { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-.seg button.sel.short { background: var(--red); color: #1a0a0a; border-color: var(--red); }
-.calc-line { font-size: 12px; color: var(--muted); margin-top: -4px; margin-bottom: 12px; }
+.input-with-btn { display: flex; gap: 8px; }
+.input-with-btn input { flex: 1; min-width: 0; }
+
+.chip-pick { display: flex; gap: 7px; flex-wrap: wrap; }
+.chip-pick button {
+  font-size: 12px; padding: 8px 14px; border-radius: 999px;
+  background: var(--bg-4); border: 1px solid var(--line-2); color: var(--muted);
+  cursor: pointer; font-family: var(--mono); transition: all .15s ease;
+}
+.chip-pick button:hover { border-color: var(--accent-dim); color: var(--text); }
+.chip-pick button.sel {
+  background: var(--accent); color: #06170c; border-color: var(--accent); font-weight: 700;
+  box-shadow: 0 2px 10px var(--accent-glow);
+}
+.seg { display: flex; gap: 7px; }
+.seg button {
+  flex: 1; padding: 11px; border-radius: var(--radius-sm); background: var(--bg-4);
+  border: 1px solid var(--line-2); color: var(--muted); cursor: pointer;
+  font-family: var(--mono); font-weight: 600; font-size: 13px; letter-spacing: .5px;
+  transition: all .15s ease;
+}
+.seg button:hover { color: var(--text); }
+.seg button.sel.long { background: var(--accent); color: #06170c; border-color: var(--accent); box-shadow: 0 2px 12px var(--accent-glow); }
+.seg button.sel.short { background: var(--red); color: #1c0808; border-color: var(--red); box-shadow: 0 2px 12px var(--red-glow); }
+
+.calc-line { font-size: 12px; color: var(--muted); margin: 4px 0 12px; }
 .calc-line b { color: var(--accent); }
-.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(3px);
-  z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
-.modal { background: var(--bg-2); width: 100%; max-width: 620px; max-height: 92vh; overflow-y: auto;
-  border-radius: 20px 20px 0 0; border: 1px solid var(--line); padding: 20px;
-  padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
-@media (min-width: 640px){ .modal-bg { align-items: center; } .modal { border-radius: 20px; } }
-.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-.modal-head h2 { font-family: var(--display); font-size: 18px; }
-.modal-close { background: none; border: none; color: var(--muted); font-size: 26px; cursor: pointer; line-height: 1; }
+
+/* ============================== MODAL ============================== */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,.65); backdrop-filter: blur(5px);
+  z-index: 100; display: flex; align-items: flex-end; justify-content: center;
+  animation: fadeIn .18s ease;
+}
+.modal {
+  background: var(--bg-2); width: 100%; max-width: 640px; max-height: 93vh; overflow-y: auto;
+  border-radius: 22px 22px 0 0; border: 1px solid var(--line-2); border-bottom: none;
+  padding: 22px; padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  animation: slideUp .25s cubic-bezier(.2,.9,.3,1);
+}
+@keyframes slideUp { from { transform: translateY(40px); opacity: .6; } to { transform: none; opacity: 1; } }
+@media (min-width: 640px){ .modal-bg { align-items: center; } .modal { border-radius: 22px; border-bottom: 1px solid var(--line-2); } }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-head h2 { font-family: var(--display); font-size: 19px; letter-spacing: .5px; }
+.modal-close {
+  background: var(--bg-4); border: 1px solid var(--line-2); color: var(--muted);
+  font-size: 20px; cursor: pointer; line-height: 1; width: 34px; height: 34px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: all .15s ease;
+}
+.modal-close:hover { color: var(--red); border-color: var(--red); }
+
+/* ============================== STATS ============================== */
 .stat-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
-.stat { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
-.stat .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
-.stat .num { font-family: var(--display); font-size: 24px; font-weight: 800; margin-top: 4px; }
-.stat .num.pos { color: var(--accent); } .stat .num.neg { color: var(--red); }
-.stat .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.stat {
+  background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
+  border: 1px solid var(--line); border-radius: 14px; padding: 15px;
+}
+.stat .label { font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
+.stat .num { font-family: var(--display); font-size: 25px; font-weight: 800; margin-top: 5px; letter-spacing: .5px; }
+.stat .num.pos { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
+.stat .num.neg { color: var(--red); }
+.stat .sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+.hero-stat {
+  grid-column: span 2; display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, var(--bg-4), var(--bg-2));
+  border: 1px solid var(--line-2); border-radius: var(--radius); padding: 18px;
+  position: relative; overflow: hidden;
+}
+.hero-stat::after {
+  content: ""; position: absolute; right: -30px; top: -30px; width: 130px; height: 130px;
+  background: radial-gradient(circle, var(--accent-glow), transparent 70%); pointer-events: none;
+}
+.hero-stat .big { font-family: var(--display); font-size: 34px; font-weight: 800; color: var(--accent); text-shadow: 0 0 24px var(--accent-glow); }
+
 .table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; }
-.table th { text-align: left; color: var(--muted); font-weight: 500; font-size: 11px;
-  text-transform: uppercase; letter-spacing: .5px; padding: 8px 6px; border-bottom: 1px solid var(--line); }
-.table td { padding: 9px 6px; border-bottom: 1px solid var(--bg-3); }
+.table th {
+  text-align: left; color: var(--dim); font-weight: 600; font-size: 10px;
+  text-transform: uppercase; letter-spacing: 1px; padding: 9px 8px; border-bottom: 1px solid var(--line-2);
+}
+.table td { padding: 11px 8px; border-bottom: 1px solid var(--line); }
+.table tr:last-child td { border-bottom: none; }
 .table td.pos { color: var(--accent); } .table td.neg { color: var(--red); }
-.curve-wrap { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-top: 6px; }
-.strip-wrap { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px;
-  padding: 14px; margin-top: 6px; overflow-x: auto; }
-.tier-strip, .gamble-strip { display: flex; align-items: center; gap: 6px; min-width: max-content; }
-.tier-step { display: flex; align-items: center; gap: 6px; }
-.tier-node { display: flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: 9px; font-weight: 700; font-size: 13px;
-  background: var(--bg-3); border: 1px solid var(--line); color: var(--muted); flex-shrink: 0; }
+.table-card { background: linear-gradient(180deg, var(--bg-3), var(--bg-2)); border: 1px solid var(--line); border-radius: 14px; padding: 6px 12px; }
+.ladder-row-cur { background: var(--accent-glow); }
+.ladder-row-cur td:first-child { color: var(--accent); font-weight: 700; }
+
+.curve-wrap, .strip-wrap {
+  background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
+  border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-top: 6px;
+}
+.strip-wrap { overflow-x: auto; scrollbar-width: thin; }
+.tier-strip { display: flex; align-items: center; gap: 7px; min-width: max-content; }
+.tier-step { display: flex; align-items: center; gap: 7px; }
+.tier-node {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 10px; font-weight: 700; font-size: 13px;
+  background: var(--bg-4); border: 1px solid var(--line-2); color: var(--muted); flex-shrink: 0;
+}
 .tier-node.start { border-color: var(--accent-dim); color: var(--accent); }
-.tier-node.active.win { background: rgba(74,222,128,.18); border-color: var(--accent); color: var(--accent); }
-.tier-node.active.loss { background: rgba(248,113,113,.18); border-color: var(--red); color: var(--red); }
-.tier-node.active.be { background: var(--bg-3); border-color: var(--line); color: var(--muted); }
-.tier-arrow { color: var(--muted); font-size: 15px; flex-shrink: 0; }
+.tier-node.active.win { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+.tier-node.active.loss { background: var(--red-glow); border-color: var(--red); color: var(--red); }
+.tier-node.active.be { background: var(--bg-4); border-color: var(--line-2); color: var(--muted); }
+.tier-arrow { color: var(--dim); font-size: 15px; flex-shrink: 0; }
 .tier-arrow.pos { color: var(--accent); } .tier-arrow.neg { color: var(--red); }
-.gamble-node { display: flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border-radius: 8px; font-weight: 700; font-size: 12px; flex-shrink: 0; }
-.gamble-node.win { background: rgba(74,222,128,.18); color: var(--accent); border: 1px solid var(--accent); }
-.gamble-node.loss { background: rgba(248,113,113,.18); color: var(--red); border: 1px solid var(--red); }
-.gamble-node.be { background: var(--bg-3); color: var(--muted); border: 1px solid var(--line); }
-.list-item { display: flex; align-items: center; justify-content: space-between;
-  padding: 11px 12px; background: var(--bg-2); border: 1px solid var(--line);
-  border-radius: 10px; margin-bottom: 8px; }
-.list-item .x { background: none; border: none; color: var(--red); cursor: pointer; font-size: 18px; }
-.add-row { display: flex; gap: 8px; margin-bottom: 14px; }
-.add-row input { flex: 1; padding: 11px 12px; background: var(--bg-3); border: 1px solid var(--line);
-  border-radius: 10px; color: var(--text); font-family: var(--mono); font-size: 14px; }
-.filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-.filter-bar select { padding: 9px 11px; background: var(--bg-2);
-  border: 1px solid var(--line); border-radius: 9px; color: var(--text); font-family: var(--mono); font-size: 13px; }
-.lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 200;
-  display: flex; align-items: center; justify-content: center; padding: 20px; }
-.lightbox img { max-width: 100%; max-height: 100%; border-radius: 10px; }
+
+/* ============================== MANAGE ============================== */
+.list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
+  border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 8px;
+  transition: border-color .15s ease;
+}
+.list-item:hover { border-color: var(--line-2); }
+.list-item .x {
+  background: none; border: none; color: var(--dim); cursor: pointer; font-size: 18px;
+  width: 28px; height: 28px; border-radius: 50%; transition: all .15s ease;
+}
+.list-item .x:hover { color: var(--red); background: var(--red-glow); }
+.add-row { display: flex; gap: 9px; margin-bottom: 16px; }
+.add-row input {
+  flex: 1; padding: 12px 13px; background: var(--bg-4); border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm); color: var(--text); font-family: var(--mono); font-size: 14px;
+}
+.add-row input:focus { outline: none; border-color: var(--accent-dim); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+.filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-bar select {
+  padding: 10px 12px; background: var(--bg-3); border: 1px solid var(--line-2);
+  border-radius: 999px; color: var(--text); font-family: var(--mono); font-size: 12px;
+  cursor: pointer;
+}
+.filter-bar select:focus { outline: none; border-color: var(--accent-dim); }
+
+.lightbox {
+  position: fixed; inset: 0; background: rgba(0,0,0,.94); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  animation: fadeIn .15s ease;
+}
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 12px; box-shadow: var(--shadow); }
+
+.note-text { color: var(--muted); font-size: 13px; margin-bottom: 12px; line-height: 1.6; }
 </style>
 </head>
 <body>
 <header class="topbar">
-  <h1 class="brand">TRADE<span>JOURNAL</span></h1>
-  <div class="topbar-actions"><button id="installBtn" class="btn-ghost" hidden>Install</button></div>
+  <div>
+    <h1 class="brand">TRADE<span>JOURNAL</span></h1>
+    <div class="brand-sub">Tiered System</div>
+  </div>
 </header>
 <nav class="tabs">
   <button class="tab active" data-view="tier">Tier</button>
@@ -398,12 +567,16 @@ const UI = (() => {
     const r = Trades.rMultiple(t);
     const rrv = Trades.rr(t.slPips, t.tpPips);
     const pnlNum = parseFloat(t.pnl);
-    const outBadge = t.status === "open" ? `<span class="badge open">OPEN</span>` : `<span class="badge ${t.outcome}">${t.outcome.toUpperCase()}</span>`;
-    const tierLabel = t.tier ? `<span class="tag-chip">T${t.tier}</span>` : "";
+    const outBadge = t.status === "open" ? `<span class="badge open">Open</span>` : `<span class="badge ${t.outcome}">${t.outcome === "be" ? "B/E" : t.outcome}</span>`;
+    const stateCls = t.status === "open" ? "" : t.outcome;
     return `
-      <div class="card" onclick="UI.openTrade('${t.id}')">
+      <div class="card trade-card ${stateCls}" onclick="UI.openTrade('${t.id}')">
         <div class="card-head">
-          <div><span class="pair">${esc(t.pair || "—")}</span> <span class="badge ${t.direction}">${t.direction.toUpperCase()}</span> ${tierLabel}</div>
+          <div class="card-head-left">
+            <span class="pair">${esc(t.pair || "—")}</span>
+            <span class="badge ${t.direction}">${t.direction}</span>
+            ${t.tier ? `<span class="tier-pill">T${t.tier}</span>` : ""}
+          </div>
           ${outBadge}
         </div>
         <div class="meta-grid">
@@ -439,9 +612,9 @@ const UI = (() => {
               <button type="button" class="${t.direction === "short" ? "sel short" : ""}" onclick="UI.pickDir('short')">SHORT</button>
             </div>
           </div>
-          <div class="field" id="tierField"><label>Tier</label>
+          <div class="field" id="tierField"><label>Tier <span class="hint">· auto from ladder</span></label>
             <select id="f_tier" onchange="UI.onTierChange(this.value)">${[1,2,3,4].map(n => `<option value="${n}" ${String(t.tier) === String(n) ? "selected" : ""}>Tier ${n}</option>`).join("")}</select>
-            <div class="calc-line" id="tierStakeLine"></div>
+            <div class="calc-line" id="tierStakeLine" style="margin-top:8px;margin-bottom:0"></div>
           </div>
           <div class="field-row-3">
             <div class="field"><label>RR</label><input id="f_rr" type="number" step="any" value="${esc(t.rr || Tier.RR)}" oninput="UI.recalcRR()" /></div>
@@ -449,27 +622,27 @@ const UI = (() => {
             <div class="field"><label>TP (pips)</label><input id="f_tp" type="number" step="any" value="${esc(t.tpPips)}" placeholder="auto" oninput="UI.tpEdited()" /></div>
           </div>
           <div class="calc-line" id="rrLine"></div>
-          <div class="field"><label>Entry time <span style="color:var(--muted);text-transform:none;letter-spacing:0">· auto on save</span></label>
-            <div style="display:flex;gap:8px"><input id="f_entry" type="datetime-local" value="${esc(t.entryTime)}" style="flex:1;min-width:0" /><button type="button" class="btn-ghost" onclick="UI.stampNow('f_entry')">Now</button></div>
+          <div class="field"><label>Entry time <span class="hint">· auto on save</span></label>
+            <div class="input-with-btn"><input id="f_entry" type="datetime-local" value="${esc(t.entryTime)}" /><button type="button" class="btn-ghost" onclick="UI.stampNow('f_entry')">Now</button></div>
           </div>
           <div class="field"><label>Setup tags</label>
             <div class="chip-pick" id="tagPick">${state.tags.map(tg => `<button type="button" class="${(t.tags || []).includes(tg) ? "sel" : ""}" onclick="UI.toggleTag('${esc(tg)}')">${esc(tg)}</button>`).join("")}</div>
           </div>
           <div class="field"><label>Entry screenshot(s)</label><input type="file" accept="image/*" multiple onchange="UI.addImages(this,'entry')" /></div>
           <div class="thumbs" id="imgEntry"></div>
-          <div class="section-title" style="margin-top:20px">Close (when TP / SL / BE hit)</div>
+          <div class="section-title" style="margin-top:24px">Close · TP / SL / BE</div>
           <div class="field"><label>Outcome</label>
             <div class="seg" id="outSeg">${["win", "loss", "be"].map(o => `<button type="button" class="${t.outcome === o ? "sel " + (o === "win" ? "long" : o === "loss" ? "short" : "") : ""}" onclick="UI.pickOutcome('${o}')">${o === "be" ? "BREAK EVEN" : o.toUpperCase()}</button>`).join("")}</div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Exit time <span style="color:var(--muted);text-transform:none;letter-spacing:0">· auto on close</span></label>
-              <div style="display:flex;gap:8px"><input id="f_exit" type="datetime-local" value="${esc(t.exitTime)}" style="flex:1;min-width:0" /><button type="button" class="btn-ghost" onclick="UI.stampNow('f_exit')">Now</button></div>
+            <div class="field"><label>Exit time <span class="hint">· auto on close</span></label>
+              <div class="input-with-btn"><input id="f_exit" type="datetime-local" value="${esc(t.exitTime)}" /><button type="button" class="btn-ghost" onclick="UI.stampNow('f_exit')">Now</button></div>
             </div>
-            <div class="field"><label>P&L <span style="color:var(--muted);text-transform:none;letter-spacing:0">· auto from tier, editable</span></label><input id="f_pnl" type="number" step="any" value="${esc(t.pnl)}" /></div>
+            <div class="field"><label>P&L <span class="hint">· auto from tier</span></label><input id="f_pnl" type="number" step="any" value="${esc(t.pnl)}" /></div>
           </div>
           <div class="field"><label>Result screenshot(s)</label><input type="file" accept="image/*" multiple onchange="UI.addImages(this,'result')" /></div>
           <div class="thumbs" id="imgResult"></div>
-          <div class="field"><label>Notes</label><textarea id="f_notes" rows="6" style="min-height:140px;max-height:300px;overflow-y:auto">${esc(t.notes)}</textarea></div>
+          <div class="field" style="margin-top:16px"><label>Notes</label><textarea id="f_notes" rows="6">${esc(t.notes)}</textarea></div>
           <div class="btn-row">
             <button class="btn" style="flex:1" onclick="UI.save()">Save</button>
             ${mode === "edit" ? `<button class="btn btn-danger" onclick="UI.del('${t.id}')">Delete</button>` : ""}
@@ -486,14 +659,13 @@ const UI = (() => {
   function updateTierUI() {
     const line = document.getElementById("tierStakeLine"), sel = document.getElementById("f_tier");
     if (sel && UI._draft.tier) sel.value = UI._draft.tier;
-    if (line && UI._draft.tier) { const stake = Tier.stakeFor(Number(UI._draft.tier)); line.innerHTML = `Stake <b>${stake.toFixed(2)}</b> · TP profit <b>${(stake * Tier.RR).toFixed(2)}</b> @ ${UI._draft.rr || Tier.RR} RR`; }
+    if (line && UI._draft.tier) { const stake = Tier.stakeFor(Number(UI._draft.tier)); line.innerHTML = `Stake <b>$${stake.toFixed(2)}</b> · TP profit <b>$${(stake * Tier.RR).toFixed(2)}</b> @ ${UI._draft.rr || Tier.RR} RR`; }
     else if (line) line.innerHTML = "";
   }
   function pickOutcome(o) {
     UI._draft.outcome = o;
     const seg = document.getElementById("outSeg");
     [...seg.children].forEach((b, i) => { const oo = ["win", "loss", "be"][i]; b.className = UI._draft.outcome === oo ? "sel " + (oo === "win" ? "long" : oo === "loss" ? "short" : "") : ""; });
-    // Auto-fill P&L from the trade's tier (editable afterwards)
     const tierNum = Number(UI._draft.tier);
     const pnlEl = document.getElementById("f_pnl");
     if (tierNum && pnlEl) {
@@ -571,18 +743,26 @@ const UI = (() => {
     const curStake = Tier.stakeFor(cur);
     app().innerHTML = `
       <div class="stat-grid">
-        ${stat("Current Tier", "Tier " + cur, "auto from history")}
-        ${stat("Tier Stake", "$" + num(curStake), "risk @ " + Tier.RR + " RR", "pos")}
+        <div class="hero-stat">
+          <div>
+            <div class="stat"><div class="label" style="padding:0;background:none;border:none">Current Tier</div></div>
+            <div class="big">TIER ${cur}</div>
+            <div class="sub" style="color:var(--muted);font-size:12px">Stake $${num(curStake)} · TP +$${num(curStake * Tier.RR)} @ ${Tier.RR} RR</div>
+          </div>
+          <div style="font-family:var(--display);font-size:52px;font-weight:800;color:var(--line-2)">${cur}/4</div>
+        </div>
       </div>
       ${tierHistoryStrip()}
       <div class="section-title">Ladder</div>
-      <table class="table"><thead><tr><th>Tier</th><th>Stake (risk)</th><th>TP profit</th><th>RR</th></tr></thead><tbody>
-        ${rows.map(r => `<tr style="${r.tier === cur ? "background:var(--bg-3)" : ""}"><td>${r.tier === cur ? "▶ " : ""}Tier ${r.tier}</td><td>$${num(r.stake)}</td><td class="pos">+$${num(r.profit)}</td><td>${r.rr}</td></tr>`).join("")}
-      </tbody></table>
-      <div class="calc-line" style="margin-top:10px">TP → up one tier · SL → down one tier · BE → hold · floor T1 · cap T4.</div>
+      <div class="table-card">
+        <table class="table"><thead><tr><th>Tier</th><th>Stake (risk)</th><th>TP profit</th><th>RR</th></tr></thead><tbody>
+          ${rows.map(r => `<tr class="${r.tier === cur ? "ladder-row-cur" : ""}"><td>${r.tier === cur ? "▶ " : ""}Tier ${r.tier}</td><td>$${num(r.stake)}</td><td class="pos">+$${num(r.profit)}</td><td>${r.rr}</td></tr>`).join("")}
+        </tbody></table>
+      </div>
+      <div class="calc-line" style="margin-top:10px">TP → up · SL → down · BE → hold · floor T1 · cap T4</div>
       <div class="section-title">Trade Calculator</div>
       <div class="card">
-        <div class="calc-line" style="color:var(--muted);margin-bottom:12px">Auto-pulls current <b style="color:var(--accent)">Tier ${cur}</b> · risk <b style="color:var(--accent)">${curStake.toFixed(2)}</b> @ ${Tier.RR} RR. Just enter SL.</div>
+        <div class="note-text">Auto-pulls <b style="color:var(--accent)">Tier ${cur}</b> · risk <b style="color:var(--accent)">$${curStake.toFixed(2)}</b>. Just enter SL.</div>
         <div class="field-row">
           <div class="field"><label>SL (pips)</label><input id="tc_sl" type="number" step="any" placeholder="e.g. 20" oninput="UI.calc('combo')" /></div>
           <div class="field"><label>RR</label><input id="tc_rr" type="number" step="any" value="${Tier.RR}" oninput="UI.calc('combo')" /></div>
@@ -593,7 +773,7 @@ const UI = (() => {
   function tierHistoryStrip() {
     const chron = state.trades.filter(t => t.status === "closed")
       .sort((a, b) => (a.exitTime || a.entryTime || "").localeCompare(b.exitTime || b.entryTime || ""));
-    if (!chron.length) return `<div class="section-title">Tier Path</div><div class="calc-line" style="color:var(--muted)">No closed tiered trades yet.</div>`;
+    if (!chron.length) return `<div class="section-title">Tier Path</div><div class="calc-line" style="color:var(--muted)">No closed trades yet — your climb starts at Tier 1.</div>`;
     let tier = 1;
     const steps = chron.map(t => { const from = tier; const to = Tier.next(from, t.outcome); tier = to; return { from, to, outcome: t.outcome, pair: t.pair, time: t.exitTime || t.entryTime }; });
     const node = (n, dir) => { const cls = dir === "win" ? "win" : dir === "loss" ? "loss" : "be"; return `<span class="tier-node active ${cls}">${n}</span>`; };
@@ -614,15 +794,16 @@ const UI = (() => {
       if (!sl) { out.innerHTML = ""; return; }
       const tp = sl * rr;
       const conSize = risk / sl;
-      const conDisplay = conSize < 10
-        ? `<b>${conSize.toFixed(2)} mini con</b> <span style="color:var(--muted)">(${risk.toFixed(2)} ÷ ${sl})</span>`
-        : `<b>${(conSize / 10).toFixed(2)} con</b> <span style="color:var(--muted)">(${conSize.toFixed(2)} ÷ 10)</span>`;
+      const isMini = conSize < 10;
+      const sizeVal = isMini ? conSize.toFixed(2) : (conSize / 10).toFixed(2);
+      const conDetail = isMini
+        ? `$${risk.toFixed(2)} ÷ ${sl}`
+        : `${conSize.toFixed(2)} ÷ 10`;
       out.innerHTML = `
-        <div class="stat-grid" style="margin-top:4px">
+        <div class="stat-grid" style="margin-top:6px">
           <div class="stat"><div class="label">TP pips</div><div class="num pos">${tp.toFixed(1)}</div><div class="sub">${rr} × ${sl} SL</div></div>
-          <div class="stat"><div class="label">Size to enter</div><div class="num">${conSize < 10 ? conSize.toFixed(2) : (conSize / 10).toFixed(2)}</div><div class="sub">${conSize < 10 ? "mini con" : "con"}</div></div>
-        </div>
-        <div class="calc-line" style="margin-top:12px">${conDisplay}</div>`;
+          <div class="stat"><div class="label">Size to enter</div><div class="num">${sizeVal}</div><div class="sub">${isMini ? "mini con" : "con"} · ${conDetail}</div></div>
+        </div>`;
     }
   }
 
@@ -655,18 +836,27 @@ const UI = (() => {
   function stat(label, n, sub, cls = "") { return `<div class="stat"><div class="label">${label}</div><div class="num ${cls}">${n}</div>${sub ? `<div class="sub">${sub}</div>` : ""}</div>`; }
   function groupTable(title, rows) {
     if (!rows.length) return "";
-    return `<div class="section-title">${title}</div><table class="table"><thead><tr><th>${title.replace("By ", "")}</th><th>N</th><th>WR</th><th>P&L</th><th>R</th></tr></thead><tbody>
-      ${rows.map(g => `<tr><td>${esc(g.key)}</td><td>${g.n}</td><td>${num(g.wr, 0)}%</td><td class="${sign(g.pnl)}">${(g.pnl > 0 ? "+" : "") + num(g.pnl)}</td><td class="${sign(g.r)}">${(g.r > 0 ? "+" : "") + num(g.r)}</td></tr>`).join("")}</tbody></table>`;
+    return `<div class="section-title">${title}</div><div class="table-card"><table class="table"><thead><tr><th>${title.replace("By ", "")}</th><th>N</th><th>WR</th><th>P&L</th><th>R</th></tr></thead><tbody>
+      ${rows.map(g => `<tr><td>${esc(g.key)}</td><td>${g.n}</td><td>${num(g.wr, 0)}%</td><td class="${sign(g.pnl)}">${(g.pnl > 0 ? "+" : "") + num(g.pnl)}</td><td class="${sign(g.r)}">${(g.r > 0 ? "+" : "") + num(g.r)}</td></tr>`).join("")}</tbody></table></div>`;
   }
   function curveSvg(curve) {
     if (curve.length < 2) return `<div class="sub" style="color:var(--muted)">Need ≥2 closed trades.</div>`;
-    const W = 320, H = 120, pad = 4;
+    const W = 320, H = 130, pad = 5;
     const ys = curve.map(p => p.y);
     const min = Math.min(0, ...ys), max = Math.max(0, ...ys), range = (max - min) || 1;
     const pts = curve.map((p, i) => { const x = pad + (i / (curve.length - 1)) * (W - pad * 2); const y = H - pad - ((p.y - min) / range) * (H - pad * 2); return x.toFixed(1) + "," + y.toFixed(1); });
     const zeroY = H - pad - ((0 - min) / range) * (H - pad * 2);
-    const col = ys[ys.length - 1] >= 0 ? "var(--accent)" : "var(--red)";
-    return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none" style="display:block"><line x1="0" y1="${zeroY}" x2="${W}" y2="${zeroY}" stroke="var(--line)" stroke-dasharray="3 3"/><polyline points="${pts.join(" ")}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/></svg>`;
+    const last = ys[ys.length - 1];
+    const col = last >= 0 ? "#4ade80" : "#f87171";
+    const fillPts = `${pad},${zeroY} ${pts.join(" ")} ${(W - pad).toFixed(1)},${zeroY}`;
+    return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none" style="display:block">
+      <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${col}" stop-opacity=".22"/><stop offset="100%" stop-color="${col}" stop-opacity="0"/>
+      </linearGradient></defs>
+      <polygon points="${fillPts}" fill="url(#cg)"/>
+      <line x1="0" y1="${zeroY}" x2="${W}" y2="${zeroY}" stroke="#232b1f" stroke-dasharray="3 3"/>
+      <polyline points="${pts.join(" ")}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>
+    </svg>`;
   }
 
   /* ---------- MANAGE ---------- */
@@ -675,7 +865,7 @@ const UI = (() => {
       ${manageList("Pairs", "pairs", state.pairs)}
       ${manageList("Setup Tags", "tags", state.tags)}
       <div class="section-title">Tiers</div>
-      <div class="calc-line" style="color:var(--muted)">Tiers are fixed (1–5) and driven by the tier engine — see the <b>Tier</b> tab.</div>`;
+      <div class="calc-line" style="color:var(--muted)">Tiers are fixed (1–4) and engine-driven — see the <b>Tier</b> tab.</div>`;
   }
   function manageList(title, key, items) {
     return `<div class="section-title">${title}</div>
@@ -694,13 +884,13 @@ const UI = (() => {
   function renderBackup() {
     app().innerHTML = `
       <div class="card"><div class="section-title" style="margin-top:0">Export</div>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:12px">JSON = full backup (trades + images) to re-import anywhere. ZIP = trades.json + browseable PNG files.</p>
+        <p class="note-text">JSON = full backup (trades + images) to re-import anywhere. ZIP = trades.json + browseable PNG files.</p>
         <div class="btn-row"><button class="btn" onclick="UI.exportJSON()">Export JSON</button><button class="btn" onclick="UI.exportZIP()">Export ZIP</button></div>
       </div>
       <div class="card"><div class="section-title" style="margin-top:0">Import / Restore</div>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Load a previously exported JSON. <b>Merge</b> adds; <b>Replace</b> wipes first.</p>
-        <input type="file" id="importFile" accept="application/json,.json" />
-        <div class="btn-row" style="margin-top:12px"><button class="btn-ghost" onclick="UI.importJSON(false)">Merge</button><button class="btn-ghost" onclick="UI.importJSON(true)">Replace all</button></div>
+        <p class="note-text">Load a previously exported JSON. <b>Merge</b> adds; <b>Replace</b> wipes first.</p>
+        <input type="file" id="importFile" accept="application/json,.json" style="color:var(--muted)" />
+        <div class="btn-row" style="margin-top:14px"><button class="btn-ghost" onclick="UI.importJSON(false)">Merge</button><button class="btn-ghost" onclick="UI.importJSON(true)">Replace all</button></div>
       </div>
       <div class="card"><div class="section-title" style="margin-top:0">Danger zone</div><button class="btn btn-danger" onclick="UI.wipe()">Erase all data</button></div>`;
   }
@@ -766,12 +956,6 @@ const UI = (() => {
   UI.go("tier");
   document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => UI.go(tab.dataset.view)));
   document.getElementById("fab").addEventListener("click", () => UI.newTrade());
-  let deferred;
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault(); deferred = e;
-    const b = document.getElementById("installBtn"); b.hidden = false;
-    b.onclick = async () => { deferred.prompt(); deferred = null; b.hidden = true; };
-  });
 })();
 </script>
 </body>
