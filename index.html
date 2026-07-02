@@ -15,15 +15,21 @@
 <style>
 /* ============================== DESIGN SYSTEM ============================== */
 :root {
-  --bg: #0a0c0a;
-  --bg-2: #10140f;
-  --bg-3: #171c15;
-  --bg-4: #1e241c;
-  --line: #232b1f;
-  --line-2: #2e3828;
-  --text: #e9f0e5;
-  --muted: #7f8f76;
-  --dim: #5a6852;
+  --bg: #0a0a0a;
+  --bg-2: #121110;
+  --bg-3: #1a1815;
+  --bg-4: #221f1a;
+  --line: #2a2620;
+  --line-2: #383127;
+  --text: #f0ece3;
+  --muted: #938a78;
+  --dim: #6b6355;
+  /* Gold = UI accent */
+  --gold: #e8b64a;
+  --gold-2: #f5cd6a;
+  --gold-glow: rgba(232,182,74,.16);
+  --gold-dim: #8a6a1e;
+  /* Green / Red = semantic (P&L, outcomes, direction) — unchanged */
   --accent: #4ade80;
   --accent-glow: rgba(74,222,128,.14);
   --accent-dim: #2c7a4d;
@@ -35,19 +41,19 @@
   --radius-sm: 11px;
   --mono: "JetBrains Mono", ui-monospace, monospace;
   --display: "Syne", system-ui, sans-serif;
-  --shadow: 0 8px 32px rgba(0,0,0,.45);
+  --shadow: 0 8px 32px rgba(0,0,0,.5);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html { scroll-behavior: smooth; }
 body {
   background:
-    radial-gradient(1200px 500px at 50% -10%, rgba(74,222,128,.05), transparent 60%),
+    radial-gradient(1200px 500px at 50% -10%, rgba(232,182,74,.06), transparent 60%),
     var(--bg);
   color: var(--text); font-family: var(--mono);
   font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased;
   padding-bottom: 100px; min-height: 100vh;
 }
-::selection { background: var(--accent-dim); color: var(--text); }
+::selection { background: var(--gold-dim); color: var(--text); }
 
 /* ============================== TOP BAR ============================== */
 .topbar {
@@ -58,7 +64,7 @@ body {
   border-bottom: 1px solid var(--line);
 }
 .brand { font-family: var(--display); font-size: 20px; letter-spacing: 1.5px; font-weight: 800; }
-.brand span { color: var(--accent); text-shadow: 0 0 18px var(--accent-glow); }
+.brand span { color: var(--gold); text-shadow: 0 0 18px var(--gold-glow); }
 .brand-sub { font-size: 10px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-top: -2px; }
 
 /* ============================== TABS ============================== */
@@ -78,8 +84,8 @@ body {
 }
 .tab:hover { color: var(--text); background: var(--bg-3); }
 .tab.active {
-  color: var(--bg); background: var(--accent); font-weight: 700;
-  box-shadow: 0 2px 16px var(--accent-glow), 0 0 0 1px var(--accent);
+  color: var(--bg); background: linear-gradient(180deg, var(--gold-2), var(--gold)); font-weight: 700;
+  box-shadow: 0 2px 16px var(--gold-glow), 0 0 0 1px var(--gold);
 }
 
 main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .25s ease; }
@@ -88,9 +94,9 @@ main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .
 /* ============================== BUTTONS ============================== */
 .btn {
   padding: 12px 18px; border-radius: var(--radius-sm); border: none;
-  background: linear-gradient(180deg, #56e88f, var(--accent));
-  color: #06170c; font-family: var(--mono); font-weight: 700; font-size: 14px;
-  cursor: pointer; transition: all .15s ease; box-shadow: 0 2px 14px var(--accent-glow);
+  background: linear-gradient(180deg, var(--gold-2), var(--gold));
+  color: #1a1305; font-family: var(--mono); font-weight: 700; font-size: 14px;
+  cursor: pointer; transition: all .15s ease; box-shadow: 0 2px 14px var(--gold-glow);
 }
 .btn:hover { filter: brightness(1.06); }
 .btn:active { transform: scale(.97); }
@@ -99,16 +105,16 @@ main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .
   background: var(--bg-3); color: var(--text); font-family: var(--mono); font-size: 13px;
   cursor: pointer; transition: all .15s ease;
 }
-.btn-ghost:hover { border-color: var(--accent-dim); color: var(--accent); }
+.btn-ghost:hover { border-color: var(--gold-dim); color: var(--gold); }
 .btn-danger { background: linear-gradient(180deg, #fb8b8b, var(--red)); color: #1c0808; box-shadow: 0 2px 14px var(--red-glow); }
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .fab {
   position: fixed; right: 20px; bottom: calc(22px + env(safe-area-inset-bottom));
   width: 60px; height: 60px; border-radius: 50%; border: none;
-  background: linear-gradient(180deg, #56e88f, var(--accent));
-  color: #06170c; font-size: 30px; font-weight: 700; cursor: pointer; z-index: 30;
-  box-shadow: 0 8px 28px rgba(74,222,128,.4), 0 2px 8px rgba(0,0,0,.4);
+  background: linear-gradient(180deg, var(--gold-2), var(--gold));
+  color: #1a1305; font-size: 30px; font-weight: 700; cursor: pointer; z-index: 30;
+  box-shadow: 0 8px 28px rgba(232,182,74,.4), 0 2px 8px rgba(0,0,0,.4);
   transition: transform .15s ease;
 }
 .fab:hover { transform: scale(1.06); }
@@ -165,7 +171,7 @@ main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .
   width: 62px; height: 62px; border-radius: 10px; object-fit: cover;
   border: 1px solid var(--line-2); cursor: pointer; transition: transform .15s ease, border-color .15s ease;
 }
-.thumb:hover { transform: scale(1.05); border-color: var(--accent-dim); }
+.thumb:hover { transform: scale(1.05); border-color: var(--gold-dim); }
 
 .section-title {
   font-family: var(--display); font-size: 12px; text-transform: uppercase;
@@ -190,7 +196,7 @@ main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .
   transition: border-color .15s ease, box-shadow .15s ease;
 }
 .field input:focus, .field select:focus, .field textarea:focus {
-  outline: none; border-color: var(--accent-dim); box-shadow: 0 0 0 3px var(--accent-glow);
+  outline: none; border-color: var(--gold-dim); box-shadow: 0 0 0 3px var(--gold-glow);
 }
 .field textarea { resize: vertical; min-height: 140px; max-height: 320px; overflow-y: auto; line-height: 1.6; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -204,10 +210,10 @@ main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .
   background: var(--bg-4); border: 1px solid var(--line-2); color: var(--muted);
   cursor: pointer; font-family: var(--mono); transition: all .15s ease;
 }
-.chip-pick button:hover { border-color: var(--accent-dim); color: var(--text); }
+.chip-pick button:hover { border-color: var(--gold-dim); color: var(--text); }
 .chip-pick button.sel {
-  background: var(--accent); color: #06170c; border-color: var(--accent); font-weight: 700;
-  box-shadow: 0 2px 10px var(--accent-glow);
+  background: linear-gradient(180deg, var(--gold-2), var(--gold)); color: #1a1305; border-color: var(--gold); font-weight: 700;
+  box-shadow: 0 2px 10px var(--gold-glow);
 }
 .seg { display: flex; gap: 7px; }
 .seg button {
@@ -257,19 +263,20 @@ main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .
 .stat .num { font-family: var(--display); font-size: 25px; font-weight: 800; margin-top: 5px; letter-spacing: .5px; }
 .stat .num.pos { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
 .stat .num.neg { color: var(--red); }
+.stat .num.gold { color: var(--gold); text-shadow: 0 0 20px var(--gold-glow); }
 .stat .sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
 .hero-stat {
   grid-column: span 2; display: flex; align-items: center; justify-content: space-between;
   background: linear-gradient(135deg, var(--bg-4), var(--bg-2));
-  border: 1px solid var(--line-2); border-radius: var(--radius); padding: 18px;
+  border: 1px solid var(--gold-dim); border-radius: var(--radius); padding: 18px;
   position: relative; overflow: hidden;
 }
 .hero-stat::after {
   content: ""; position: absolute; right: -30px; top: -30px; width: 130px; height: 130px;
-  background: radial-gradient(circle, var(--accent-glow), transparent 70%); pointer-events: none;
+  background: radial-gradient(circle, var(--gold-glow), transparent 70%); pointer-events: none;
 }
-.hero-stat .big { font-family: var(--display); font-size: 34px; font-weight: 800; color: var(--accent); text-shadow: 0 0 24px var(--accent-glow); }
+.hero-stat .big { font-family: var(--display); font-size: 34px; font-weight: 800; color: var(--gold); text-shadow: 0 0 24px var(--gold-glow); }
 
 .table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; }
 .table th {
@@ -280,8 +287,8 @@ main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .
 .table tr:last-child td { border-bottom: none; }
 .table td.pos { color: var(--accent); } .table td.neg { color: var(--red); }
 .table-card { background: linear-gradient(180deg, var(--bg-3), var(--bg-2)); border: 1px solid var(--line); border-radius: 14px; padding: 6px 12px; }
-.ladder-row-cur { background: var(--accent-glow); }
-.ladder-row-cur td:first-child { color: var(--accent); font-weight: 700; }
+.ladder-row-cur { background: var(--gold-glow); }
+.ladder-row-cur td:first-child { color: var(--gold); font-weight: 700; }
 
 .curve-wrap, .strip-wrap {
   background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
@@ -295,7 +302,7 @@ main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .
   width: 32px; height: 32px; border-radius: 10px; font-weight: 700; font-size: 13px;
   background: var(--bg-4); border: 1px solid var(--line-2); color: var(--muted); flex-shrink: 0;
 }
-.tier-node.start { border-color: var(--accent-dim); color: var(--accent); }
+.tier-node.start { border-color: var(--gold-dim); color: var(--gold); }
 .tier-node.active.win { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
 .tier-node.active.loss { background: var(--red-glow); border-color: var(--red); color: var(--red); }
 .tier-node.active.be { background: var(--bg-4); border-color: var(--line-2); color: var(--muted); }
@@ -320,7 +327,7 @@ main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .
   flex: 1; padding: 12px 13px; background: var(--bg-4); border: 1px solid var(--line-2);
   border-radius: var(--radius-sm); color: var(--text); font-family: var(--mono); font-size: 14px;
 }
-.add-row input:focus { outline: none; border-color: var(--accent-dim); box-shadow: 0 0 0 3px var(--accent-glow); }
+.add-row input:focus { outline: none; border-color: var(--gold-dim); box-shadow: 0 0 0 3px var(--gold-glow); }
 
 .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .filter-bar select {
@@ -328,7 +335,7 @@ main { padding: 18px 16px; max-width: 760px; margin: 0 auto; animation: fadeIn .
   border-radius: 999px; color: var(--text); font-family: var(--mono); font-size: 12px;
   cursor: pointer;
 }
-.filter-bar select:focus { outline: none; border-color: var(--accent-dim); }
+.filter-bar select:focus { outline: none; border-color: var(--gold-dim); }
 
 .lightbox {
   position: fixed; inset: 0; background: rgba(0,0,0,.94); z-index: 200;
@@ -762,7 +769,7 @@ const UI = (() => {
       <div class="calc-line" style="margin-top:10px">TP → up · SL → down · BE → hold · floor T1 · cap T4</div>
       <div class="section-title">Trade Calculator</div>
       <div class="card">
-        <div class="note-text">Auto-pulls <b style="color:var(--accent)">Tier ${cur}</b> · risk <b style="color:var(--accent)">$${curStake.toFixed(2)}</b>. Just enter SL.</div>
+        <div class="note-text">Auto-pulls <b style="color:var(--gold)">Tier ${cur}</b> · risk <b style="color:var(--gold)">${curStake.toFixed(2)}</b>. Just enter SL.</div>
         <div class="field-row">
           <div class="field"><label>SL (pips)</label><input id="tc_sl" type="number" step="any" placeholder="e.g. 20" oninput="UI.calc('combo')" /></div>
           <div class="field"><label>RR</label><input id="tc_rr" type="number" step="any" value="${Tier.RR}" oninput="UI.calc('combo')" /></div>
@@ -801,7 +808,7 @@ const UI = (() => {
         : `${conSize.toFixed(2)} ÷ 10`;
       out.innerHTML = `
         <div class="stat-grid" style="margin-top:6px">
-          <div class="stat"><div class="label">TP pips</div><div class="num pos">${tp.toFixed(1)}</div><div class="sub">${rr} × ${sl} SL</div></div>
+          <div class="stat"><div class="label">TP pips</div><div class="num gold">${tp.toFixed(1)}</div><div class="sub">${rr} × ${sl} SL</div></div>
           <div class="stat"><div class="label">Size to enter</div><div class="num">${sizeVal}</div><div class="sub">${isMini ? "mini con" : "con"} · ${conDetail}</div></div>
         </div>`;
     }
